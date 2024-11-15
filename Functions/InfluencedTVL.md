@@ -1,6 +1,6 @@
 # Canopy Influenced TVL Model Specification
 
-`````markdown:Functions/InfluencedTVL.md
+Functions/InfluencedTVL.md
 
 ## Initial Conditions
 - Initial Non-Canopy TVL Influence: 10%
