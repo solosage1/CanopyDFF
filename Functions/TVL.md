@@ -1,6 +1,6 @@
 # Canopy TVL Model Specification
 
-````markdown:TVL.md
+TVL.md
 
 ## Initial Conditions (as of Month 0)
 - Move Blockchain Total TVL: $800M
