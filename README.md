@@ -28,15 +28,15 @@ CanopyDFF is built to support strategic business development and informed tokeno
 ## Project Structure
 
 ```
-
 CanopyDFF/
 ├── Functions/
+│   ├── AEGIS.md
+│   ├── InfluencedTVL.md
 │   ├── LEAFPairs.md
 │   ├── OAK.md
-│   ├── LEAFPrice.md
 │   ├── OAKPrice.md
+│   ├── Revenue.md
 │   ├── TVL.md
-│   ├── TVLGrowth.md
 │   └── TVLGrowth.md
 ├── Asssumptions.md
 ├── README.md
@@ -55,41 +55,44 @@ CanopyDFF/
 
 The [OAK Distribution Model](./Functions/OAK.md) manages the distribution and redemption of OAK tokens. Key functionalities include:
 
-- **Deal Management**: Tracks multiple distribution deals, each with their own OAK allocation, vesting periods, and IRR (Internal Rate of Return) thresholds.
-- **Redemption Mechanics**: Implements a dual exponential decay function to determine partial and full redemptions based on risk-adjusted IRR.
-- **Supply Tracking**: Monitors the total OAK supply, adjusting for redemptions and ensuring economic stability.
-- **Best Case IRR Calculation**: Estimates potential returns for AEGIS LP holders under current conditions.
+- **Token Supply Management**: Ensures a fixed supply of 500,000 OAK tokens is managed across the ecosystem.
+- **Redemption Mechanics**: Implements proportional redemptions based on risk-adjusted IRR thresholds.
+- **Supply Tracking**: Monitors the total OAK supply, adjusting for redemptions to maintain economic stability.
+- **IRR Calculations**: Estimates potential returns for AEGIS LP holders under current conditions.
 
 ### LEAF Pairs Model
 
 The [LEAF Pairs Model](./Functions/LEAFPairs.md) manages liquidity pairs involving LEAF tokens. It handles:
 
 - **Liquidity Management**: Adds, maintains, and retrieves liquidity pair metrics and historical balances.
-- **Fee Calculations**: Integrates fee structures for transactional costs related to LEAF trading.
-- **Reporting**: Provides detailed reports and visualizations of liquidity pair performance.
+- **Market Impact Handling**: Accounts for LEAF trading activities and their effects on LEAF and USDC balances.
+- **Proportional Redemptions**: Processes redemptions proportionally based on holdings and market-driven changes.
+- **Historical Tracking**: Maintains a history of balance changes for auditing and performance analysis.
 
 ### Influenced TVL Model
 
-The [Influenced TVL Model](./Functions/TVL.md) projects the Total Value Locked (TVL) influenced by the Canopy ecosystem. It includes:
+The [Influenced TVL Model](./Functions/InfluencedTVL.md) projects the Total Value Locked (TVL) influenced by the Canopy ecosystem. It includes:
 
-- **Growth Projections**: Uses exponential and sigmoid functions to model TVL growth and market share decay.
-- **Market Share Dynamics**: Simulates the Canopy's market share evolution in the Move blockchain ecosystem.
-- **Integration**: Links with other models to align TVL with OAK distribution and revenue projections.
+- **Growth Projections**: Uses sigmoid functions to model TVL growth and market share increase over time.
+- **Market Share Dynamics**: Simulates Canopy's increasing influence within the Move blockchain ecosystem.
+- **Configuration Flexibility**: Allows adjustment of growth rates, target shares, and projection timelines.
+- **Integration**: Links with other models to align TVL projections with OAK distribution and revenue forecasts.
 
 ### Revenue Model
 
 The [Revenue Model](./Functions/Revenue.md) forecasts revenue streams based on TVL and other economic indicators. Features include:
 
-- **Revenue Calculation**: Models revenue using both volatile and stable TVL components with exponential decay.
+- **Revenue Calculation**: Models revenue using both volatile and stable TVL components with exponential decay functions.
 - **Growth and Decay Parameters**: Adjusts revenue rates and TVL shares over time to reflect market stability and growth.
-- **Extensions**: Incorporates scenarios like market shocks, competitive pressures, and risk-adjusted revenue streams.
+- **Scenario Incorporations**: Accounts for market shocks, competitive pressures, and risk-adjusted revenue streams.
+- **Reporting**: Provides detailed revenue forecasts and visualizations to inform strategic decisions.
 
 ## Interaction Between Components
 
 All components within CanopyDFF interact to provide a cohesive modeling framework:
 
 - **OAK Distribution & TVL Model**: The OAK Distribution Model relies on TVL projections to determine redemption mechanics and IRR thresholds.
-- **LEAF Pairs & TVL Model**: Liquidity pairs managed by the LEAF Pairs Model directly influence the TVL dynamics.
+- **LEAF Pairs & TVL Model**: Liquidity pairs managed by the LEAF Pairs Model directly influence TVL dynamics through LEAF and USDC balance changes.
 - **Revenue Model**: Revenue projections depend on the TVL model and indirectly affect OAK supply through redemptions and tokenomics adjustments.
 
 This interlinked structure ensures that changes in one component automatically reflect across the system, enabling dynamic and responsive tokenomics strategies.
@@ -99,9 +102,11 @@ This interlinked structure ensures that changes in one component automatically r
 The [Asssumptions Document](./Asssumptions.md) details the starting conditions and recommended settings for each model, covering:
 
 - **Token Supply**: Total minting caps for OAK and LEAF tokens.
-- **Distribution Deals**: Breakdown of OAK allocation, lock periods, and IRR expectations.
+- **Distribution Parameters**: Allocation amounts, redemption percentages, and price dynamics.
 - **TVL Projections**: Initial values, growth rates, and market share dynamics.
 - **Revenue Parameters**: Initial and target revenue rates, growth and decay parameters.
+- **Validation Rules**: Ensures parameters are within logical and permissible ranges to maintain model integrity.
+- **General Recommendations**: Guidelines for parameter synchronization, scalability, monitoring, documentation, flexibility, risk management, and testing.
 
 These assumptions are critical for ensuring consistency and reliability across all models.
 
@@ -121,10 +126,8 @@ For detailed information and specific implementations, refer to the following do
 - **[Asssumptions.md](./Asssumptions.md)**: Foundational assumptions and settings.
 - **[OAK Distribution Model](./Functions/OAK.md)**: Details on OAK token distribution and redemption mechanics.
 - **[LEAF Pairs Model](./Functions/LEAFPairs.md)**: Specifications for managing LEAF liquidity pairs.
-- **[TVL Model](./Functions/TVL.md)**: Framework for projecting influenced Total Value Locked.
-- **[LEAFPrice.md](./Functions/LEAFPrice.md)**: Placeholder for LEAF price calculations.
-- **[OAKPrice.md](./Functions/OAKPrice.md)**: Placeholder for OAK price calculations.
-- **[TVLGrowth.md](./Functions/TVLGrowth.md)**: Placeholder for incremental TVL growth calculations.
+- **[Influenced TVL Model](./Functions/InfluencedTVL.md)**: Framework for projecting influenced Total Value Locked.
+- **[Revenue Model](./Functions/Revenue.md)**: Revenue forecasting and modeling specifications.
 
 Each document provides comprehensive details, including model definitions, implementation nuances, sample usage code, and recommendations for extensions and enhancements.
 
