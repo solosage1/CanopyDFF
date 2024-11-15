@@ -1,6 +1,7 @@
 # Canopy AEGIS LP Model Specification
 
 ## Purpose
+
 Track and manage AEGIS LP state, including LEAF and USDC balances, redemptions, and market-driven value changes.
 
 ## Python Implementation
@@ -116,6 +117,7 @@ class AEGISLPModel:
 ```
 
 ### Sample Usage
+
 ```python
 # Initialize AEGIS LP
 config = AEGISLPConfig(
@@ -143,6 +145,7 @@ leaf_out, usdc_out, leaf_balance, usdc_balance = model.process_month(
 ```
 
 ## Key Features
+
 1. **State Management**: Tracks LEAF and USDC balances over time
 2. **Proportional Redemptions**: Returns assets in proportion to holdings
 3. **Market Impact**: Accounts for LEAF trading activity
@@ -152,6 +155,7 @@ leaf_out, usdc_out, leaf_balance, usdc_balance = model.process_month(
 7. **Month Updates**: Allows updating the current month's data
 
 ## Model Capabilities
+
 1. Process monthly redemptions
 2. Track LEAF and USDC balances
 3. Account for LEAF trading activity
@@ -161,6 +165,7 @@ leaf_out, usdc_out, leaf_balance, usdc_balance = model.process_month(
 7. Update current month data
 
 ## Implementation Details
+
 1. **State Structure**:
    - Current LEAF balance
    - Current USDC balance
@@ -175,6 +180,7 @@ leaf_out, usdc_out, leaf_balance, usdc_balance = model.process_month(
    - Current month updates supported
 
 ## Recommended Extensions
+
 1. Add price impact tracking
 2. Include volume-based metrics
 3. Add trading limits
@@ -184,11 +190,14 @@ leaf_out, usdc_out, leaf_balance, usdc_balance = model.process_month(
 7. Add detailed reporting capabilities
 
 ## Integration Notes
+
 This model can be integrated with:
+
 1. Price Impact Model
 2. Volume Model
 3. TVL Model
 4. Risk Management System
+
 `````
 
 Key changes made:

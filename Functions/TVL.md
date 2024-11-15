@@ -3,6 +3,7 @@
 TVL.md
 
 ## Initial Conditions (as of Month 0)
+
 - Move Blockchain Total TVL: $800M
 - Canopy TVL: $300M
 - Initial Canopy Market Share: 37.5%
@@ -10,6 +11,7 @@ TVL.md
 ## Key Growth Assumptions
 
 ### Move Blockchain Growth
+
 1. Base annual growth rate for Move ecosystem
    - Higher growth in early years, moderating over time
    - Year 1: 200% annual growth
@@ -19,6 +21,7 @@ TVL.md
    - Year 5: 50% annual growth
 
 ### Canopy Market Share Decay
+
 1. Market share decline rate
    - Starting from 37.5%
    - Gradual decline as competitors enter
@@ -28,6 +31,7 @@ TVL.md
 ## Python Implementation
 
 ### Model Definition
+
 ```python
 import math
 from dataclasses import dataclass
@@ -81,6 +85,7 @@ class TVLModel:
 ```
 
 ### Sample Usage
+
 ```python
 # Initialize model with configuration
 config = TVLModelConfig(
@@ -101,6 +106,7 @@ month_24_move_tvl, month_24_canopy_tvl = model.get_tvl(24)
 ## Implementation Details
 
 ### Key Features
+
 1. **Single Public Interface**: The `get_tvl()` method provides a clean, simple interface for retrieving TVL projections
 2. **Encapsulated Configuration**: All model parameters are contained in the `TVLModelConfig` dataclass
 3. **Type Safety**: Full type hints throughout the implementation
@@ -108,6 +114,7 @@ month_24_move_tvl, month_24_canopy_tvl = model.get_tvl(24)
 5. **Immutable Configuration**: Configuration is set once at initialization
 
 ### Mathematical Models Used
+
 1. **Move TVL Growth**:
    - Converts annual rates to monthly compound growth
    - TVL(t) = Initial_TVL * (1 + monthly_rate)^t
@@ -119,6 +126,7 @@ month_24_move_tvl, month_24_canopy_tvl = model.get_tvl(24)
 ## Model Assumptions and Limitations
 
 ### Key Assumptions
+
 1. Growth Pattern Assumptions
    - Move blockchain growth follows a predictable pattern
    - Growth rates decline in a stepwise manner annually
@@ -136,6 +144,7 @@ month_24_move_tvl, month_24_canopy_tvl = model.get_tvl(24)
    - No major technical failures
 
 ### Model Limitations
+
 1. **Simplifications**
    - Does not account for seasonal variations
    - Assumes smooth transitions between growth rates
@@ -150,6 +159,7 @@ month_24_move_tvl, month_24_canopy_tvl = model.get_tvl(24)
 ## Recommended Extensions
 
 The model can be enhanced by:
+
 1. Adding seasonal variations through multiplicative factors
 2. Incorporating market shock scenarios
 3. Adding competitive entry events
@@ -160,14 +170,17 @@ The model can be enhanced by:
 ## Sensitivity Analysis Recommendations
 
 Key variables to test:
+
 1. Move growth rates
 2. Market share decay rate
 3. Minimum market share floor
 4. Initial TVL values
 
 For each variable, recommend testing:
+
 - Base case
 - Optimistic case (+25%)
 - Pessimistic case (-25%)
 - Extreme cases (±50%)
+
 ````

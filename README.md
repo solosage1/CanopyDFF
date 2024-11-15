@@ -43,6 +43,7 @@ CanopyDFF/
 ├── .gitignore
 └── README_content/
 ```
+
 - **Functions/**: Contains detailed specifications and implementations of various models.
 - **Asssumptions.md**: Outlines the foundational assumptions and settings for all models.
 - **README.md**: This document.

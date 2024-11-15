@@ -3,6 +3,7 @@
 Functions/InfluencedTVL.md
 
 ## Initial Conditions
+
 - Initial Non-Canopy TVL Influence: 10%
 - Target Non-Canopy TVL Influence (5y): 50%
 - Growth Pattern: Sigmoid curve (slow start, accelerated middle, plateau)
@@ -85,24 +86,28 @@ influenced_tvl = influenced_model.get_influenced_tvl(month, canopy_tvl, move_tvl
 ```
 
 ## Key Features
+
 1. **Sigmoid Growth Pattern**: Uses S-curve for realistic influence growth
 2. **Configurable Parameters**: All key assumptions adjustable through config
 3. **Simple Interface**: Single method to calculate influenced TVL
 4. **Bounded Growth**: Never exceeds target influence share
 
 ## Mathematical Model
+
 1. **Sigmoid Function**:
    - Normalized time: t = (month/max_months * 12) - 6
    - Base sigmoid: S(t) = 1 / (1 + e^(-growth_rate * t))
    - Scaled influence: influence = initial + range * S(t)
 
 ## Model Assumptions
+
 1. Influence growth follows S-curve pattern
 2. Influence is calculated as percentage of non-Canopy TVL
 3. Growth plateaus at target influence share
 4. Network effects create accelerating middle period
 
 ## Limitations
+
 1. Does not account for:
    - Market conditions impact on influence
    - Competitive responses
@@ -110,6 +115,7 @@ influenced_tvl = influenced_model.get_influenced_tvl(month, canopy_tvl, move_tvl
    - Protocol-specific factors
 
 ## Recommended Extensions
+
 1. Add market condition modifiers
 2. Include competitive response factors
 3. Add geographic distribution modeling
@@ -118,6 +124,7 @@ influenced_tvl = influenced_model.get_influenced_tvl(month, canopy_tvl, move_tvl
 
 ## Integration with TVL Model
 This model is designed to work alongside the TVL model:
+
 1. First calculate Move and Canopy TVL using TVL model
 2. Pass results to Influenced TVL model
 3. Combine direct and influenced TVL for total impact
@@ -125,17 +132,20 @@ This model is designed to work alongside the TVL model:
 ## Sensitivity Analysis Recommendations
 
 Key variables to test:
+
 1. Initial influence share
 2. Target influence share
 3. Growth rate parameter
 4. Time to target (max_months)
 
 Test scenarios:
+
 - Base case
 - Aggressive growth (higher growth rate)
 - Conservative growth (lower growth rate)
 - Extended timeline (longer max_months)
 - Compressed timeline (shorter max_months)
+
 `````
 
 This influenced TVL model:

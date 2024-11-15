@@ -1,10 +1,11 @@
 # Canopy OAK Distribution Model Specification
- 
- ## Purpose
+
+## Purpose
+
  Track OAK distribution deals and calculate redemptions based on risk-adjusted IRR thresholds, vesting periods, and manage the redemption mechanics for AEGIS LP tokens. The model ensures that a fixed supply of OAK tokens is managed efficiently, maintaining economic stability and fairness among token holders.
- 
- ## Python Implementation
- 
+
+## Python Implementation
+
  ```python:Functions/OAKDistribution.md
  from dataclasses import dataclass, field
  from typing import List, Dict, Tuple
@@ -373,9 +374,9 @@
  else:
      print(f"{best_case_irr*100:.2f}%")
  ```
- 
- ## Key Features
- 
+
+## Key Features
+
  1. **Sequential Processing**: Maintains redemption history and processes months in order.
  2. **IRR-based Redemptions**: Triggers redemptions when risk-adjusted IRR falls below threshold.
  3. **Deal-level Tracking**: Maintains individual deal redemption status.
@@ -385,9 +386,9 @@
      - **Proportional Redeemable AEGIS LP**: Redeemed OAK tokens grant proportionate AEGIS LP, burning OAK and reallocating unredeemed portions to remaining AEGIS LP holders.
  6. **Best Case IRR Calculation**: Calculates the best case internal rate of return for AEGIS LP holders based on current conditions.
  7. **OAK Supply Tracking**: Monitors and maintains the total OAK supply over time.
- 
- ## Model Capabilities
- 
+
+## Model Capabilities
+
  1. **Track Multiple Distribution Deals**: Supports tracking of multiple OAK distribution deals.
  2. **Calculate Redemptions Based on Risk-Adjusted IRR**: Determines when and how much redemptions should occur based on risk-adjusted IRR conditions.
  3. **Maintain Redemption and OAK Supply History**: Keeps a historical record of redemptions and total OAK supply.
@@ -395,9 +396,9 @@
  5. **Support Variable Vesting and Unlock Dates**: Allows different vesting schedules and unlock dates per deal.
  6. **Add New Deals Dynamically**: Supports the addition of new distribution deals at any time, ensuring the total OAK distribution does not exceed the hard cap.
  7. **Calculate Best Case IRR for AEGIS LP Holders**: Provides IRR calculations to estimate potential returns based on current and future conditions.
- 
- ## Implementation Details
- 
+
+## Implementation Details
+
  1. **Deal Structure**:
      - **Counterparty Identification**: Unique identifier for each deal.
      - **OAK Amount**: Number of OAK tokens allocated to the deal.
@@ -405,31 +406,31 @@
      - **Vesting Period**: Duration before redemptions can commence.
      - **IRR Threshold**: The IRR below which redemptions are triggered.
      - **Unlock Month**: Month when the deal's OAK tokens may be redeemed in their entirety.
- 
+
  2. **Redemption Logic**:
      - **Sequential Processing**: Ensures months are processed in order to maintain accuracy.
      - **Redemption Conditions**: Redemptions occur only if risk-adjusted IRR falls below the threshold during the global redemption window and the deal has reached its unlock date.
      - **Full Redemption**: Upon triggering, the remaining OAK tokens in the deal are redeemed and burned.
      - **OAK Supply Management**: Redemptions decrease the total OAK supply, and unredeemed portions are reallocated to remaining holders, thereby increasing their value.
- 
+
  3. **Best Case IRR Calculation**:
      - **Assumptions**: Full redemption at the weighted average redemption end month across all deals.
      - **Time Difference**: Calculates the period between the current month and average redemption end month.
      - **IRR Formula**: Uses a compound interest formula to estimate IRR based on value difference, time difference, and confidence level.
- 
+
  4. **OAK Supply Tracking**:
      - **Initial Supply**: 500,000 OAK tokens minted at startup.
      - **Redemptions Impact**: Adjusts the total OAK supply based on redemptions by burning redeemed OAK tokens.
      - **Historical Records**: Maintains a history of OAK supply for each processed month to track the total circulating supply over time.
- 
+
  5. **Validation Rules**:
      - Ensures all deal parameters are valid (positive amounts, proper redemption dates).
      - Prevents duplicate counterparty entries.
      - Validates redemption periods relative to vesting periods.
      - Ensures total OAK distributed across all deals does not exceed the hard cap of 500,000 OAK tokens.
- 
- ## Recommended Extensions
- 
+
+## Recommended Extensions
+
  1. **Add Partial Redemption Capabilities**:
      - Allow partial redemptions instead of full amounts.
  2. **Include Lockup Periods After Redemption**:
@@ -444,11 +445,11 @@
      - Allow updates to deals post-creation, such as adjusting vesting periods or IRR thresholds.
  7. **Include Deal Removal Functionality**:
      - Enable the removal of deals under certain conditions or administrative actions.
- 
- ## Integration Notes
- 
+
+## Integration Notes
+
  This model can be integrated with:
- 
+
  1. **IRR Calculation Model**:
      - Provides the necessary IRR inputs for redemption decisions.
  2. **Token Economics Model**:
@@ -459,35 +460,35 @@
      - Coordinates the distribution and allocation of AEGIS LP tokens upon redemption.
  5. **Liquidity Management Systems**:
      - Ensures that redemptions do not adversely affect overall liquidity.
- 
- 
+
+
  The updated `Functions/OAK.md` document now includes:
- 
+
  1. **Redemption Mechanics**:
     - **Global Redemption Start and End Dates**: Defines specific periods for when redemptions can occur across all deals.
     - **Proportional Redeemable AEGIS LP**: Redeemed OAK tokens grant proportionate AEGIS LP, burning OAK and reallocating unredeemed portions to remaining AEGIS LP holders.
- 
+
  2. **Best Case IRR Calculation**:
     - **Best Case IRR**: Calculates the best case internal rate of return for AEGIS LP holders based on acquisition price, current LEAF price, confidence level, and the redemption timeline. This IRR is annualized and uniform across all OAK token holders and adjusts when redemptions occur early, benefiting remaining holders by redistributing unredeemed AEGIS LP.
- 
+
  3. **OAK Supply Tracking**:
     - **Total OAK Supply**: Tracks the total supply of OAK tokens, adjusting for redemptions.
     - **OAK Supply History**: Maintains a history of the total OAK supply for each processed month.
- 
+
  4. **Extended Functions**:
     - `calculate_redemptions`: Calculates redemptions based on risk-adjusted IRR considering value differences, time to maturity, and confidence levels.
     - `get_best_case_irr`: Calculates the best case IRR applicable to all AEGIS LP holders.
- 
+
  5. **Sample Usage Enhancements**:
     - Demonstrates adding a new deal with redemption start and end months.
     - Shows how to calculate redemptions using the new `calculate_redemptions` function with risk-adjusted IRR.
     - Illustrates calculating the best case IRR for all deals active in a particular month.
- 
+
  6. **Documentation Updates**:
     - **Key Features**: Expanded to reflect new redemption mechanics and IRR calculations.
     - **Model Capabilities**: Updated to include best case IRR calculations and OAK supply tracking.
     - **Implementation Details**: Detailed the new redemption mechanics and IRR logic.
     - **Recommended Extensions**: Added suggestions for further enhancing the model.
     - **Integration Notes**: Expanded to include integrations with AEGIS LP management and liquidity systems.
- 
+
  This comprehensive update ensures that the `OAKDistributionModel` effectively manages a fixed supply of 500,000 OAK tokens, handles redemptions by burning redeemed tokens, and redistributes the remaining AEGIS LP among fewer OAK tokens. This approach maintains the economic stability and fairness among token holders by increasing the value per remaining OAK token as redemptions occur.

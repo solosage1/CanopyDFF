@@ -1,6 +1,5 @@
 # Assumptions Document
 
-
 This document outlines the starting conditions and recommended settings for the Canopy OAK Distribution Model, LEAF Pairs Model, Influenced TVL Model, and Revenue Model. These assumptions are crucial for understanding the foundational parameters and configurations that drive each component of the Canopy ecosystem.
 
 ## Table of Contents
