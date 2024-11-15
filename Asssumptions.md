@@ -1,3 +1,4 @@
+`````markdown:Asssumptions.md
 # Assumptions Document
 
 ```markdown
@@ -33,39 +34,62 @@ This document outlines the starting conditions and recommended settings for the 
   - **End Month**: 48
 
 - **Initial Distribution Deals**:
-  1. **Team**
-     - **OAK Amount**: 1,000,000 OAK
-     - **Start Month**: 0
-     - **Unlock**: 12 months
-     - **IRR Threshold**: 10% annually
-     - **Unlock Month**: 24
-  2. ****
-     - **OAK Amount**: 2,000,000 OAK
+  1. **Private Sale**
+     - **OAK Amount**: 50,000 OAK (10% of 500,000)
      - **Start Month**: 3
-     - **Vesting Period**: 24 months
-     - **IRR Threshold**: 12% annually
-     - **Unlock Month**: 36
-  3. **Protocol C**
-     - **OAK Amount**: 500,000 OAK
-     - **Start Month**: 6
-     - **Vesting Period**: 18 months
+     - **Lock Period**: 12 months
+     - **IRR Threshold**: 25% annually
+  2. **Initial Liquidity Deals**
+     - **OAK Amount**: 50,000 OAK (10% of 500,000)
+     - **Start Month**: 15
+     - **Lock Period**: 12 months
+     - **IRR Threshold**: 25% annually
+  3. **Year 2 Liquidity Deals**
+     - **OAK Amount**: 50,000 OAK (10% of 500,000)
+     - **Start Month**: 27
+     - **Lock Period**: 12 months
+     - **IRR Threshold**: 15% annually
+  4. **Year 3 Liquidity Deals**
+     - **OAK Amount**: 50,000 OAK (10% of 500,000)
+     - **Start Month**: 39
+     - **Lock Period**: 12 months
      - **IRR Threshold**: 10% annually
-     - **Unlock Month**: 42
-
-
-### Recommended Settings
-
-- **IRR Calculation**:
-  - **Period Basis**: Monthly calculations, annualized for reporting.
-  - **Confidence Level**: 80% (0.8) for best case IRR estimations.
+  5. **Founding Partners**
+     - **OAK Amount**: 150,000 OAK (30% of 500,000)
+     - **Start Month**: 3
+     - **Lock Period**: 24 months
+     - **IRR Threshold**: 20% annually
+  6. **Initial TVL Rewards**
+     - **OAK Amount**: 75,000 OAK (15% of 500,000)
+     - **Start Month**: 15
+     - **Lock Period**: 12 months
+     - **IRR Threshold**: 35% annually
+  7. **Year 2 TVL Reward**
+     - **OAK Amount**: 50,000 OAK (10% of 500,000)
+     - **Start Month**: 27
+     - **Lock Period**: 12 months
+     - **IRR Threshold**: 25% annually
+  8. **Year 3 TVL Deals**
+     - **OAK Amount**: 25,000 OAK (5% of 500,000)
+     - **Start Month**: 39
+     - **Lock Period**: 12 months
+     - **IRR Threshold**: 15% annually
   
 - **Redemption Mechanics**:
-  - **Full Redemption Only**: Currently supports full redemption; partial redemptions are suggested for future implementations.
+  - **Dual Exponential Decay Function**:
+    - **Decay Constants**:
+      - \( k_1 = 0.1 \): Controls redemption scaling for IRR between threshold and 1%.
+      - \( k_2 = 0.5 \): Controls redemption scaling for IRR below threshold but above 1%.
+    - **Redemption Logic**:
+      - Partial redemptions occur as IRR approaches the threshold based on the dual exponential decay function.
+      - Full redemption is triggered only when risk-adjusted IRR falls below 1%.
   - **Proportional Redistribution**: Upon redemption, redistribute unredeemed AEGIS LP proportionally to remaining OAK holders.
-
+  
 - **Validation Rules**:
   - Ensure total OAK allocated across all deals does not exceed 500,000 OAK.
   - Validate that all deal parameters (amounts, dates, thresholds) are within logical and permissible ranges.
+  - Prevent duplicate counterparty entries.
+  - Validate redemption periods relative to vesting periods.
 
 ---
 
