@@ -1,6 +1,6 @@
-# CanopyDFF Repository
+```markdown
 
-````markdown
+# CanopyDFF Repository
 
 ## Overview
 
@@ -30,6 +30,7 @@ CanopyDFF is built to support strategic business development and informed tokeno
 ## Project Structure
 
 ```
+
 CanopyDFF/
 ├── Functions/
 │   ├── LEAFPairs.md
@@ -43,6 +44,7 @@ CanopyDFF/
 ├── README.md
 ├── .gitignore
 └── README_content/
+
 ```
 
 - **Functions/**: Contains detailed specifications and implementations of various models.
