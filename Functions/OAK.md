@@ -1,6 +1,6 @@
 # Canopy OAK Distribution Model Specification
 
- `````markdown:Functions/OAK.md
+Functions/OAK.md
  
  ## Purpose
  Track OAK distribution deals and calculate redemptions based on risk-adjusted IRR thresholds, vesting periods, and manage the redemption mechanics for AEGIS LP tokens. The model ensures that a fixed supply of OAK tokens is managed efficiently, maintaining economic stability and fairness among token holders.
