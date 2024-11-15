@@ -1,7 +1,5 @@
 # Canopy AEGIS LP Model Specification
 
-`````markdown:Functions/AEGISLP.md
-
 ## Purpose
 Track and manage AEGIS LP state, including LEAF and USDC balances, redemptions, and market-driven value changes.
 
