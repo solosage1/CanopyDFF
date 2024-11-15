@@ -1,6 +1,6 @@
 # Canopy LEAF Pairs Model Specification
 
-`````markdown:Functions/LEAFPairs.md
+Functions/LEAFPairs.md
 
 ## Purpose
 Track and manage liquidity pair deals with LEAF token over time, supporting both single-sided and balanced pairs, with dynamic concentration based on target ratios.
