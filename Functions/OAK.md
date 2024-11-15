@@ -462,7 +462,6 @@ Functions/OAK.md
  5. **Liquidity Management Systems**:
      - Ensures that redemptions do not adversely affect overall liquidity.
  
- ``` text
  
  The updated `Functions/OAK.md` document now includes:
  
