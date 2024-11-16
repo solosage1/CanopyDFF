@@ -2,183 +2,167 @@
 
 ## Overview
 
-**CanopyDFF** is a comprehensive modeling toolkit designed to drive Canopy's business development and tokenomics decisions. The project encompasses several interconnected models that manage the distribution and redemption of OAK tokens, the dynamics of LEAF pairs liquidity, influenced TVL (Total Value Locked), and revenue projections. These models collectively ensure the economic stability, scalability, and fairness within the Canopy ecosystem.
+**CanopyDFF** is a comprehensive modeling toolkit designed to drive Canopy's business development and tokenomics decisions. The project currently implements a robust TVL (Total Value Locked) model with plans to expand to other components including OAK distribution, LEAF pairs liquidity, influenced TVL, and revenue projections.
 
 ## Table of Contents
 
 1. [Introduction](#introduction)
 2. [Project Structure](#project-structure)
 3. [Components Overview](#components-overview)
-   - [OAK Distribution Model](#oak-distribution-model)
-   - [LEAF Pairs Model](#leaf-pairs-model)
-   - [Influenced TVL Model](#influenced-tvl-model)
-   - [Revenue Model](#revenue-model)
-4. [Interaction Between Components](#interaction-between-components)
-5. [Assumptions](#assumptions)
-6. [Usage](#usage)
-7. [Documentation](#documentation)
-8. [Getting Started](#getting-started)
-9. [Contributing](#contributing)
-10. [License](#license)
+   - [TVL Model](#tvl-model)
+4. [Usage](#usage)
+5. [Documentation](#documentation)
+6. [Getting Started](#getting-started)
+7. [Contributing](#contributing)
+8. [License](#license)
 
 ## Introduction
 
-CanopyDFF is built to support strategic business development and informed tokenomics decisions within the Canopy ecosystem. By leveraging robust financial models, the project ensures an efficient and fair distribution of OAK tokens, maintains liquidity through LEAF pairs, projects and manages TVL, and forecasts revenue streams. These models are designed to be flexible, scalable, and aligned with evolving market dynamics.
+CanopyDFF is built to support strategic business development and informed tokenomics decisions within the Canopy ecosystem. The current implementation focuses on TVL modeling, providing robust projections for both Move blockchain and Canopy TVL growth.
 
 ## Project Structure
 
-```
+```plaintext
 CanopyDFF/
-├── Functions/
-│   ├── AEGIS.md
-│   ├── InfluencedTVL.md
-│   ├── LEAFPairs.md
-│   ├── OAK.md
-│   ├── OAKPrice.md
-│   ├── Revenue.md
+├── src/
+│   ├── Functions/
+│   │   ├── __init__.py
+│   │   └── TVL.py
+│   ├── Simulations/
+│   │   ├── __init__.py
+│   │   └── simulate.py
+│   └── __init__.py
+├── Docs/
 │   ├── TVL.md
-│   └── TVLGrowth.md
-├── Asssumptions.md
+│   ├── Revenue.md
+│   ├── LEAFPairs.md
+│   ├── AEGIS.md
+│   └── OAK.md
+├── Assumptions.md
+├── run_simulation.py
 ├── README.md
-├── .gitignore
-└── README_content/
+└── .gitignore
 ```
-
-- **Functions/**: Contains detailed specifications and implementations of various models.
-- **Asssumptions.md**: Outlines the foundational assumptions and settings for all models.
-- **README.md**: This document.
-- **.gitignore**: Specifies intentionally untracked files to ignore.
 
 ## Components Overview
 
-### OAK Distribution Model
+### TVL Model
 
-The [OAK Distribution Model](./Functions/OAK.md) manages the distribution and redemption of OAK tokens. Key functionalities include:
+The TVL Model (`src/Functions/TVL.py`) projects Total Value Locked growth for both Move blockchain and Canopy. Key features include:
 
-- **Token Supply Management**: Ensures a fixed supply of 500,000 OAK tokens is managed across the ecosystem.
-- **Redemption Mechanics**: Implements proportional redemptions based on risk-adjusted IRR thresholds.
-- **Supply Tracking**: Monitors the total OAK supply, adjusting for redemptions to maintain economic stability.
-- **IRR Calculations**: Estimates potential returns for AEGIS LP holders under current conditions.
+- **Growth Projections**:
+  - Implements yearly growth rates with monthly compounding
+  - Handles multi-year projections with different growth rates per year
+  - Maintains final year's growth rate for extended projections
 
-### LEAF Pairs Model
+- **Market Share Dynamics**:
+  - Models Canopy's market share using exponential decay
+  - Implements minimum market share floor
+  - Accounts for competitive pressure through decay rate
 
-The [LEAF Pairs Model](./Functions/LEAFPairs.md) manages liquidity pairs involving LEAF tokens. It handles:
+- **Configuration Flexibility**:
 
-- **Liquidity Management**: Adds, maintains, and retrieves liquidity pair metrics and historical balances.
-- **Market Impact Handling**: Accounts for LEAF trading activities and their effects on LEAF and USDC balances.
-- **Proportional Redemptions**: Processes redemptions proportionally based on holdings and market-driven changes.
-- **Historical Tracking**: Maintains a history of balance changes for auditing and performance analysis.
-
-### Influenced TVL Model
-
-The [Influenced TVL Model](./Functions/InfluencedTVL.md) projects the Total Value Locked (TVL) influenced by the Canopy ecosystem. It includes:
-
-- **Growth Projections**: Uses sigmoid functions to model TVL growth and market share increase over time.
-- **Market Share Dynamics**: Simulates Canopy's increasing influence within the Move blockchain ecosystem.
-- **Configuration Flexibility**: Allows adjustment of growth rates, target shares, and projection timelines.
-- **Integration**: Links with other models to align TVL projections with OAK distribution and revenue forecasts.
-
-### Revenue Model
-
-The [Revenue Model](./Functions/Revenue.md) forecasts revenue streams based on TVL and other economic indicators. Features include:
-
-- **Revenue Calculation**: Models revenue using both volatile and stable TVL components with exponential decay functions.
-- **Growth and Decay Parameters**: Adjusts revenue rates and TVL shares over time to reflect market stability and growth.
-- **Scenario Incorporations**: Accounts for market shocks, competitive pressures, and risk-adjusted revenue streams.
-- **Reporting**: Provides detailed revenue forecasts and visualizations to inform strategic decisions.
-
-## Interaction Between Components
-
-All components within CanopyDFF interact to provide a cohesive modeling framework:
-
-- **OAK Distribution & TVL Model**: The OAK Distribution Model relies on TVL projections to determine redemption mechanics and IRR thresholds.
-- **LEAF Pairs & TVL Model**: Liquidity pairs managed by the LEAF Pairs Model directly influence TVL dynamics through LEAF and USDC balance changes.
-- **Revenue Model**: Revenue projections depend on the TVL model and indirectly affect OAK supply through redemptions and tokenomics adjustments.
-
-This interlinked structure ensures that changes in one component automatically reflect across the system, enabling dynamic and responsive tokenomics strategies.
-
-## Assumptions
-
-The [Asssumptions Document](./Asssumptions.md) details the starting conditions and recommended settings for each model, covering:
-
-- **Token Supply**: Total minting caps for OAK and LEAF tokens.
-- **Distribution Parameters**: Allocation amounts, redemption percentages, and price dynamics.
-- **TVL Projections**: Initial values, growth rates, and market share dynamics.
-- **Revenue Parameters**: Initial and target revenue rates, growth and decay parameters.
-- **Validation Rules**: Ensures parameters are within logical and permissible ranges to maintain model integrity.
-- **General Recommendations**: Guidelines for parameter synchronization, scalability, monitoring, documentation, flexibility, risk management, and testing.
-
-These assumptions are critical for ensuring consistency and reliability across all models.
+    ```python
+    TVLModelConfig(
+        initial_move_tvl=800_000_000,    # $800M
+        initial_canopy_tvl=350_000_000,  # $350M
+        move_growth_rates=[1.5, 1, 0.75, 0.5, 0.4],
+        min_market_share=0.10,
+        market_share_decay_rate=0.02,
+        initial_boost_share=0.10,
+        boost_growth_rate=1.0
+    )
+    ```
 
 ## Usage
 
-To leverage CanopyDFF for driving Canopy's business development and tokenomics, follow these steps:
+To run the TVL simulation:
 
-1. **Review Assumptions**: Understand the foundational assumptions in [Asssumptions.md](./Asssumptions.md).
-2. **Explore Models**: Dive into each model's documentation within the [Functions](./Functions/) directory to understand their implementations.
-3. **Run Models**: Utilize the provided Python implementations to simulate token distributions, TVL projections, and revenue forecasts.
-4. **Analyze Outputs**: Use the reporting capabilities within each model to inform strategic decisions and tokenomics adjustments.
+1. Ensure you're in a Python virtual environment:
+
+    ```bash
+    python3 -m venv venv
+    source venv/bin/activate
+    ```
+
+2. Install required packages:
+
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+3. Run the simulation:
+
+    ```bash
+    python3 run_simulation.py
+    ```
+
+The simulation will generate:
+
+- A line plot showing Move and Canopy TVL over 60 months
+- A detailed table of monthly TVL values
 
 ## Documentation
 
-For detailed information and specific implementations, refer to the following documents:
+Key documentation files:
 
-- **[Asssumptions.md](./Asssumptions.md)**: Foundational assumptions and settings.
-- **[OAK Distribution Model](./Functions/OAK.md)**: Details on OAK token distribution and redemption mechanics.
-- **[LEAF Pairs Model](./Functions/LEAFPairs.md)**: Specifications for managing LEAF liquidity pairs.
-- **[Influenced TVL Model](./Functions/InfluencedTVL.md)**: Framework for projecting influenced Total Value Locked.
-- **[Revenue Model](./Functions/Revenue.md)**: Revenue forecasting and modeling specifications.
-
-Each document provides comprehensive details, including model definitions, implementation nuances, sample usage code, and recommendations for extensions and enhancements.
+- **[Assumptions.md](./Assumptions.md)**: Detailed model assumptions and configurations
+- **[TVL.md](./Docs/TVL.md)**: Technical specification for the TVL model
+- **[Revenue.md](./Docs/Revenue.md)**: Technical specification for the Revenue model
+- **[LEAFPairs.md](./Docs/LEAFPairs.md)**: Technical specification for the LEAF Pairs model
+- **[AEGIS.md](./Docs/AEGIS.md)**: Technical specification for the AEGIS LP model
+- **[OAK.md](./Docs/OAK.md)**: Technical specification for the OAK Distribution model
+- **[src/Functions/TVL.py](./src/Functions/TVL.py)**: Implementation of the TVL model
+- **[src/Simulations/simulate.py](./src/Simulations/simulate.py)**: Simulation and visualization code
 
 ## Getting Started
 
-To get started with CanopyDFF:
-
 1. **Clone the Repository**
 
-   ```bash
-   git clone https://github.com/solosage1/CanopyDFF.git
-   cd CanopyDFF
-   ```
+    ```bash
+    git clone [repository-url]
+    cd CanopyDFF
+    ```
 
-2. **Install Dependencies**
+2. **Set Up Environment**
 
-   Ensure you have Python 3.8+ installed. Install any required packages (if applicable).
+    ```bash
+    python3 -m venv venv
+    source venv/bin/activate
+    pip install -r requirements.txt
+    ```
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+3. **Run Simulation**
 
-3. **Review Models**
+    ```bash
+    python3 run_simulation.py
+    ```
 
-   Browse through the [Functions](./Functions/) folder to understand each model's specifications and implementations.
-
-4. **Run Sample Usage**
-
-   Execute sample scripts provided in each model's documentation to see the models in action.
-
-   ```bash
-   python Functions/OAK.md
-   ```
-
-   *(Note: Adjust the command based on actual executable scripts if present.)*
-
-5. **Modify and Extend**
-
-   Customize models as per your requirements, adjusting parameters in the Asssumptions and model configurations.
+4. **Modify Parameters**
+    Edit `src/Simulations/simulate.py` to adjust:
+    - Initial TVL values
+    - Growth rates
+    - Market share parameters
+    - Simulation duration
 
 ## Contributing
 
 Contributions are welcome! To contribute:
 
-1. Fork the repository.
-2. Create a new branch for your feature or bugfix.
-3. Commit your changes with clear messages.
-4. Push to your fork and create a pull request detailing your changes.
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to your fork
+5. Create a Pull Request
 
-Please ensure that any new features or bugfixes are accompanied by relevant tests and documentation updates.
+Please ensure all contributions include:
+
+- Appropriate tests
+- Updated documentation
+- Clear commit messages
 
 ## License
 
 This project is licensed under the [BSD-3-Clause](LICENSE) License.
+
+```

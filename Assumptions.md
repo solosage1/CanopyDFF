@@ -1,22 +1,76 @@
 # Assumptions Document
 
-This document outlines the starting conditions and recommended settings for the Canopy OAK Distribution Model, LEAF Pairs Model, Influenced TVL Model, and Revenue Model. These assumptions are crucial for understanding the foundational parameters and configurations that drive each component of the Canopy ecosystem.
+This document outlines the starting conditions and recommended settings for the Canopy ecosystem models. These assumptions are crucial for understanding the foundational parameters and configurations that drive each component.
 
 ## Table of Contents
 
-1. [OAK Distribution Model](#oak-distribution-model)
+1. [TVL Model](#tvl-model)
    - [Starting Conditions](#starting-conditions)
-   - [Recommended Settings](#recommended-settings)
-2. [LEAF Pairs Model](#leaf-pairs-model)
-   - [Starting Conditions](#starting-conditions-1)
-   - [Recommended Settings](#recommended-settings-1)
-3. [Influenced TVL Model](#influenced-tvl-model)
-   - [Starting Conditions](#starting-conditions-2)
-   - [Recommended Settings](#recommended-settings-2)
-4. [Revenue Model](#revenue-model)
-   - [Starting Conditions](#starting-conditions-3)
-   - [Recommended Settings](#recommended-settings-3)
-5. [General Recommendations](#general-recommendations)
+   - [Growth Assumptions](#growth-assumptions)
+   - [Implementation Details](#implementation-details)
+2. [OAK Distribution Model](#oak-distribution-model)
+3. [LEAF Pairs Model](#leaf-pairs-model)
+4. [Influenced TVL Model](#influenced-tvl-model)
+5. [Revenue Model](#revenue-model)
+6. [General Recommendations](#general-recommendations)
+
+---
+
+## TVL Model
+
+### Starting Conditions
+
+- **Move Blockchain Total TVL**: $800M initial
+- **Canopy TVL**: $300M initial
+- **Initial Market Share**: 37.5% (derived from initial TVLs)
+- **Minimum Market Share**: 10% floor
+- **Market Share Decay Rate**: 0.04 annually
+
+### Growth Assumptions
+
+#### Move Blockchain Growth
+- **Year 1**: 200% annual growth
+- **Year 2**: 150% annual growth
+- **Year 3**: 100% annual growth
+- **Year 4**: 75% annual growth
+- **Year 5**: 50% annual growth
+
+#### Market Share Dynamics
+- Exponential decay from initial 37.5% share
+- Floor at 10% minimum share
+- Yearly decay rate of 0.04
+- Smooth decline as competitors enter the market
+
+### Implementation Details
+
+#### Growth Calculation
+- Monthly compounding of annual growth rates
+- Continuous growth within each year
+- Maintains final year's cumulative growth for any periods beyond 5 years
+
+#### Market Share Calculation
+- Exponential decay function with floor
+- Yearly decay rate converted to monthly basis
+- Prevents share from falling below minimum threshold
+
+#### Configuration Parameters
+```python
+TVLModelConfig(
+    initial_move_tvl=800_000_000,    # $800M
+    initial_canopy_tvl=300_000_000,  # $300M
+    move_growth_rates=[2.0, 1.5, 1.0, 0.75, 0.5],  # Annual growth rates
+    min_market_share=0.10,           # 10% floor
+    market_share_decay_rate=0.04     # Annual decay rate
+)
+```
+
+#### Model Limitations
+- Does not account for:
+  - Market shocks or black swan events
+  - Seasonal variations in TVL
+  - Competitive actions beyond general market share decay
+  - Geographic variations
+  - Regulatory impacts
 
 ---
 
@@ -40,11 +94,6 @@ This document outlines the starting conditions and recommended settings for the 
   - Continuously monitor the total OAK supply, ensuring it does not exceed the hard cap.
   - Implement mechanisms to burn redeemed tokens, reducing the total supply accordingly.
 
-- **IRR Calculations**:
-  - Utilize dual exponential decay functions for best case IRR calculations:
-    - **Below 1% IRR**: Apply a faster decay rate.
-    - **Above 1% IRR**: Apply a slower decay rate.
-  
 - **Sample Usage Parameters**:
   - **Initial OAK Supply**: 500,000 OAK
   - **Redemption Start Month**: 3
@@ -175,33 +224,43 @@ This document outlines the starting conditions and recommended settings for the 
 ## General Recommendations
 
 1. **Parameter Synchronization**:
-   - Ensure that parameters across different models (OAK Distribution, LEAF Pairs, Influenced TVL, Revenue) are harmonized to reflect consistent economic assumptions.
-   - Example: The growth rate in the Influenced TVL Model should align with revenue projections in the Revenue Model.
+   - Ensure TVL model parameters align with other models
+   - Validate growth assumptions against market conditions
+   - Regular calibration of decay rates based on competitive landscape
 
-2. **Scalability**:
-   - Design models to allow easy scaling of parameters such as the number of liquidity deals, growth rates, and redemption windows without significant code changes.
-   - Utilize configuration files or environment variables to adjust parameters dynamically.
+2. **Monitoring and Validation**:
+   - Track actual vs. projected TVL growth
+   - Monitor market share dynamics
+   - Regular review of minimum share assumptions
 
-3. **Monitoring and Alerts**:
-   - Implement monitoring systems to track deviations from assumptions and trigger alerts when key metrics (e.g., IRR thresholds, influenced TVL shares) approach critical limits.
-   - Use visualization tools to regularly review model performances against assumptions.
+3. **Risk Management**:
+   - Stress test models with various growth scenarios
+   - Plan for potential market share compression
+   - Monitor competitive pressures and adjust decay rates
 
-4. **Documentation and Transparency**:
-   - Maintain comprehensive documentation for each model to facilitate audits, onboarding of new team members, and external reviews.
-   - Update this assumptions document regularly to reflect changes in strategic directions or market conditions.
+4. **Model Extensions**:
+   - Consider adding seasonal variations
+   - Implement market shock scenarios
+   - Add geographic distribution of TVL
+   - Include regulatory impact scenarios
 
-5. **Flexibility for Extensions**:
-   - Design models with extensibility in mind, allowing for future enhancements such as partial redemptions, dynamic thresholds, and integration with external financial data sources.
-   - Modularize code to enable independent updates and scalability.
+5. **Documentation and Maintenance**:
+   - Keep growth rate assumptions updated
+   - Document market share decay rationale
+   - Regular review of minimum share floor
 
-6. **Risk Management**:
-   - Incorporate robust risk management strategies to handle unexpected market conditions, ensuring the resilience of the OAK distribution and revenue generation mechanisms.
-   - Implement contingency plans for extreme scenarios like market crashes or regulatory changes.
+6. **Testing and Validation**:
+   - Unit tests for all calculations
+   - Integration tests across models
+   - Scenario analysis for different market conditions
+   - Regular backtesting against actual data
 
-7. **Testing and Validation**:
-   - Conduct thorough testing, including unit tests, integration tests, and scenario analyses, to validate the accuracy and reliability of each model under various conditions.
-   - Utilize sensitivity analysis to understand the impact of different parameter variations on model outcomes.
+7. **Reporting and Visualization**:
+   - Monthly TVL tracking
+   - Market share trend analysis
+   - Growth rate validation
+   - Competitive position monitoring
 
 ---
 
-By adhering to these starting conditions and recommended settings, the Canopy ecosystem can ensure a stable, fair, and scalable distribution of OAK tokens, effective management of LEAF pairs, realistic modeling of influenced TVL, and accurate revenue projections. Regular reviews and updates to this assumptions document are advised to accommodate evolving market dynamics and strategic objectives. 
+By adhering to these assumptions and recommendations, the Canopy ecosystem models provide a realistic framework for projecting TVL growth and market share evolution. Regular reviews and updates to this document are advised to maintain alignment with market conditions and strategic objectives. 
