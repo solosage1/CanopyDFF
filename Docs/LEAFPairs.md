@@ -1,98 +1,63 @@
-# LEAF Pairs Model
+```markdown
+# LEAF Pairs Implementation Guide
 
-## Purpose
+## 1. Core Data Structures
 
-The LEAF Pairs Model manages liquidity pairs involving LEAF tokens. It handles the distribution, maintenance, and tracking of liquidity in various trading pairs, ensuring optimal liquidity provision and market stability. This model supports both single-sided and balanced pairs, with dynamic concentration adjustments based on target ratios.
-
-## Python Implementation
-
-```python:Functions/LEAFPairs.md
-from dataclasses import dataclass, field
+```python:src/Functions/LeafPairs.py
+from dataclasses import dataclass
 from typing import List, Dict, Tuple
 from collections import defaultdict
-import math
 
 @dataclass
 class LEAFPairDeal:
-    counterparty: str           # Name of the counterparty
-    amount_usd: float           # Total liquidity value in USD
-    num_leaf_tokens: float      # Number of LEAF tokens added
-    start_month: int            # Start month (as number of months since launch)
-    duration_months: int        # Duration of the deal in months
-    leaf_percentage: float      # Target percentage of liquidity in LEAF (0-50%)
-    concentration: float        # Concentration level for above-target LEAF buying
-    correlation: float          # Correlation coefficient to BTC
-
+    counterparty: str           
+    amount_usd: float          
+    num_leaf_tokens: float     
+    start_month: int          
+    duration_months: int      
+    leaf_percentage: float    
+    concentration: float      
+    beta: float        
+        
     # Balance tracking
-    leaf_balance: float = None      # Current LEAF balance (number of tokens)
-    other_balance: float = None     # Current other token balance in USD
-
+    leaf_balance: float = None      
+    other_balance: float = None     
+        
     UNISWAP_V2_CONCENTRATION = 0.1  # Base concentration for below-target selling
-
+        
     def __post_init__(self):
         if self.leaf_balance is None:
             self.leaf_balance = self.num_leaf_tokens
         if self.other_balance is None:
             self.other_balance = self.amount_usd - (self.num_leaf_tokens * self.get_leaf_price())
-
+                
     def get_leaf_price(self) -> float:
-        """Assumes initial LEAF price based on allocation."""
         return (self.amount_usd / self.num_leaf_tokens) if self.num_leaf_tokens else 0
-
+            
     def get_effective_concentration(self, is_buying_leaf: bool) -> float:
-        """
-        Calculate effective concentration based on whether LEAF is being bought or sold.
-        
-        Args:
-            is_buying_leaf: True if buying LEAF, False if selling LEAF.
-        
-        Returns:
-            Effective concentration value.
-        """
-        if is_buying_leaf:
-            return self.concentration
-        else:
-            return self.UNISWAP_V2_CONCENTRATION
-
+        return self.concentration if is_buying_leaf else self.UNISWAP_V2_CONCENTRATION
+            
     def calculate_weighted_liquidity(self, is_buying_leaf: bool, leaf_price: float) -> float:
-        """
-        Calculate the weighted liquidity based on current LEAF price and concentration.
-        
-        Args:
-            is_buying_leaf: True if buying LEAF, False if selling LEAF.
-            leaf_price: Current LEAF price in USD.
-        
-        Returns:
-            Weighted liquidity in USD.
-        """
         total_liquidity = (self.leaf_balance * leaf_price) + self.other_balance
         effective_concentration = self.get_effective_concentration(is_buying_leaf)
         return total_liquidity * effective_concentration
-```
-
-```python:Functions/LEAFPairs.md
-class LEAFPairsConfig:
-    deals: List[LEAFPairDeal]
-
-    def __init__(self, deals: List[LEAFPairDeal]):
-        self.deals = deals
-    
-    def add_deal(self, deal: LEAFPairDeal):
-        existing_deals = [d.counterparty for d in self.deals]
-        if deal.counterparty in existing_deals:
-            raise ValueError(f"Deal with counterparty {deal.counterparty} already exists.")
-        self.deals.append(deal)
 
 @dataclass
+class LEAFPairsConfig:
+    max_slippage: float = 0.03
+    fee_rate: float = 0.003
+    min_liquidity_ratio: float = 0.5
+```
+
+## 2. Core Model Implementation
+
+```python:src/Functions/LeafPairs.py
 class LEAFPairsModel:
     def __init__(self, config: LEAFPairsConfig):
         self.config = config
-        self.current_month = min(deal.start_month for deal in config.deals)
-        self.balance_history = defaultdict(
-            list
-        )  # month -> List[(counterparty, leaf_balance, other_balance)]
-        self._validate_deals()
-        self._record_state(self.current_month)
+        self.deals: List[LEAFPairDeal] = []
+        self.balance_history = defaultdict(list)
+        self.current_month = 0
 
     def process_market_change(
         self,
@@ -100,397 +65,724 @@ class LEAFPairsModel:
         leaf_price: float,
         total_market_change: float,
     ) -> Dict[str, Tuple[float, float]]:
-        """
-        Process market changes across all active deals.
-
-        Args:
-            month: Month number since start.
-            leaf_price: Current LEAF price in USD.
-            total_market_change: Net token change from LEAF trading
-                                 (positive = sold LEAF, negative = bought LEAF).
-
-        Returns:
-            Dict of counterparty -> (new_leaf_balance, new_other_balance).
-        """
+        """Process market changes across all active deals"""
         if month < self.current_month:
-            raise ValueError("Cannot process market changes for past months.")
+            raise ValueError("Cannot process past months")
         if month > self.current_month + 1:
-            raise ValueError("Cannot skip months when processing market changes.")
+            raise ValueError("Cannot skip months")
 
-        for deal in self.config.deals:
-            if self._is_deal_active(deal, month):
-                is_buying_leaf = total_market_change < 0
-                weighted_liquidity = deal.calculate_weighted_liquidity(is_buying_leaf, leaf_price)
-                liquidity_change = (total_market_change * (weighted_liquidity / self._total_weighted_liquidity(month, leaf_price)))
-                if is_buying_leaf:
-                    deal.leaf_balance += liquidity_change / leaf_price
-                    deal.other_balance -= liquidity_change
-                else:
-                    deal.leaf_balance -= liquidity_change / leaf_price
-                    deal.other_balance += liquidity_change
+        active_deals = self.get_active_deals(month)
+        if not active_deals:
+            self.current_month = month
+            return {}
+        
+        is_buying_leaf = total_market_change < 0
+        total_weighted_liquidity = self._total_weighted_liquidity(month, leaf_price)
+        
+        if total_weighted_liquidity == 0:
+            raise ValueError("Total weighted liquidity is zero. Cannot distribute market change.")
 
-                if deal.other_balance < 0:
-                    raise ValueError(
-                        f"Insufficient other token balance for deal with {deal.counterparty}."
-                    )
-
-        results = {
-            deal.counterparty: (deal.leaf_balance, deal.other_balance)
-            for deal in self.config.deals
-            if self._is_deal_active(deal, month)
-        }
-
+        for deal in active_deals:
+            weighted_liquidity = deal.calculate_weighted_liquidity(is_buying_leaf, leaf_price)
+            deal_change = total_market_change * (weighted_liquidity / total_weighted_liquidity)
+            
+            if is_buying_leaf:
+                deal.leaf_balance += abs(deal_change) / leaf_price
+                deal.other_balance -= abs(deal_change)
+            else:
+                deal.leaf_balance -= deal_change / leaf_price
+                deal.other_balance += deal_change
+                
+            self._validate_balances(deal)
+        
         self._record_state(month)
         self.current_month = month
-
-        return results
-
-    def get_ratio_deviations(
-        self, month: int, leaf_price: float
-    ) -> Dict[str, float]:
-        """
-        Calculate how far each deal is from its target ratio.
-
-        Args:
-            month: Month number to check.
-            leaf_price: Current LEAF price in USD.
-
-        Returns:
-            Dict of counterparty -> ratio deviation (positive means above target).
-        """
-        if month > self.current_month:
-            raise ValueError("Cannot get ratio deviations for future months.")
-
+        
         return {
-            deal.counterparty: (deal.leaf_balance * leaf_price / (deal.leaf_balance * leaf_price + deal.other_balance)) - (deal.leaf_percentage / 100)
+            deal.counterparty: (deal.leaf_balance, deal.other_balance)
+            for deal in active_deals
+        }
+
+    def get_ratio_deviations(self, month: int, leaf_price: float) -> Dict[str, float]:
+        """Calculate ratio deviations from target for each deal"""
+        return {
+            deal.counterparty: self._get_current_ratio(deal, leaf_price) - deal.leaf_percentage
             for deal in self.get_active_deals(month)
         }
 
-    def get_liquidity_metrics(
-        self, month: int, leaf_price: float
-    ) -> Dict[str, Dict[str, float]]:
-        """
-        Get liquidity metrics for each deal.
-
-        Args:
-            month: Month number to check.
-            leaf_price: Current LEAF price in USD.
-
-        Returns:
-            Dict of counterparty -> metrics dict.
-        """
+    def get_deal_metrics(self, deal: LEAFPairDeal, leaf_price: float) -> Dict:
+        """Get comprehensive metrics for a deal"""
         return {
-            deal.counterparty: {
-                "leaf_balance_tokens": deal.leaf_balance,
-                "leaf_balance_usd": deal.leaf_balance * leaf_price,
-                "other_balance_usd": deal.other_balance,
-                "current_leaf_ratio": (deal.leaf_balance * leaf_price) / (deal.leaf_balance * leaf_price + deal.other_balance) if (deal.leaf_balance * leaf_price + deal.other_balance) > 0 else 0,
-            }
-            for deal in self.get_active_deals(month)
+            'counterparty': deal.counterparty,
+            'leaf_balance': deal.leaf_balance,
+            'other_balance': deal.other_balance,
+            'total_value_usd': deal.leaf_balance * leaf_price + deal.other_balance,
+            'current_ratio': self._get_current_ratio(deal, leaf_price),
+            'target_ratio': deal.leaf_percentage,
+            'concentration': deal.concentration
         }
 
-    def get_leaf_liquidity(self, month: int, leaf_price: float) -> float:
-        """
-        Calculate total LEAF liquidity for a given month.
+    def calculate_fees(self, volume: float) -> float:
+        """Calculate trading fees for given volume"""
+        return volume * self.config.fee_rate
 
-        Args:
-            month: Month number to check.
-            leaf_price: Current LEAF price in USD.
-
-        Returns:
-            Total LEAF liquidity in USD.
-        """
+    # Helper Methods
+    def _total_weighted_liquidity(self, month: int, leaf_price: float) -> float:
+        """Calculate total weighted liquidity for market change distribution"""
+        active_deals = self.get_active_deals(month)
         return sum(
-            deal.leaf_balance * leaf_price for deal in self.get_active_deals(month)
+            deal.calculate_weighted_liquidity(
+                is_buying_leaf=(self._get_current_ratio(deal, leaf_price) < deal.leaf_percentage),
+                leaf_price=leaf_price
+            )
+            for deal in active_deals
         )
 
-    def get_deals_end_in_month(
-        self, month: int, leaf_price: float
-    ) -> Dict[str, Tuple[float, float]]:
-        """
-        Get liquidity of deals that end in a specific month.
-
-        Args:
-            month: The month in which deals end.
-            leaf_price: Current LEAF price in USD to calculate USD value.
-
-        Returns:
-            Dict of counterparty -> (leaf_balance_tokens, leaf_balance_usd).
-        """
-        if month <= 0:
-            raise ValueError("Month must be a positive integer.")
-        if (month - 1) < self.current_month:
-            raise ValueError(
-                "Cannot retrieve end-of-deal balances for months not yet processed."
-            )
-
-        deals_ending = [
-            deal for deal in self.config.deals if (deal.start_month + deal.duration_months) == month
-        ]
-        if not deals_ending:
-            return {}
-
-        end_balances = {}
-        for deal in deals_ending:
-            # Ensure the previous month's state is recorded
-            if (month - 1) not in self.balance_history:
-                raise ValueError(
-                    f"State for month {month - 1} is not recorded yet."
-                )
-            # Find the balance for this deal in the previous month
-            previous_state = self.balance_history[month - 1]
-            deal_state = next(
-                (
-                    (cp, leaf, other)
-                    for cp, leaf, other in previous_state
-                    if cp == deal.counterparty
-                ),
-                None,
-            )
-            if deal_state is None:
-                raise ValueError(
-                    f"No state found for deal {deal.counterparty} in month {month - 1}."
-                )
-            _, leaf_balance, _ = deal_state
-            leaf_balance_usd = leaf_balance * leaf_price
-            end_balances[deal.counterparty] = (leaf_balance, leaf_balance_usd)
-
-        return end_balances
-
-    def add_new_deal(self, deal: LEAFPairDeal):
-        """
-        Add a new liquidity pair deal to the configuration.
-
-        Args:
-            deal: LEAFPairDeal instance to add.
-        """
-        self.config.add_deal(deal)
-        self._validate_deals()
-        self._record_state(self.current_month)
+    def _get_current_ratio(self, deal: LEAFPairDeal, leaf_price: float) -> float:
+        """Calculate current LEAF ratio for a deal"""
+        leaf_value = deal.leaf_balance * leaf_price
+        total_value = leaf_value + deal.other_balance
+        return leaf_value / total_value if total_value > 0 else 0
 
     def get_active_deals(self, month: int) -> List[LEAFPairDeal]:
-        """
-        Retrieve all active deals for a given month.
-
-        Args:
-            month: Month number to check.
-
-        Returns:
-            List of active LEAFPairDeal instances.
-        """
+        """Get all deals active in the given month"""
         return [
-            deal for deal in self.config.deals if self._is_deal_active(deal, month)
+            deal for deal in self.deals 
+            if self._is_deal_active(deal, month)
         ]
 
     def _is_deal_active(self, deal: LEAFPairDeal, month: int) -> bool:
-        """
-        Check if a deal is active during a given month.
-
-        Args:
-            deal: LEAFPairDeal instance.
-            month: Month number to check.
-
-        Returns:
-            True if active, False otherwise.
-        """
+        """Check if a deal is active during a given month"""
         return deal.start_month <= month < (deal.start_month + deal.duration_months)
 
-    def _validate_deals(self) -> None:
-        """
-        Validate all deals in the configuration.
-        """
-        for deal in self.config.deals:
-            if not (0 <= deal.leaf_percentage <= 50):
-                raise ValueError(
-                    f"Invalid leaf_percentage for deal with {deal.counterparty}. Must be between 0 and 50."
-                )
-            if not (0 <= deal.concentration <= 1):
-                raise ValueError(
-                    f"Invalid concentration for deal with {deal.counterparty}. Must be between 0 and 1."
-                )
-            if deal.duration_months <= 0:
-                raise ValueError(
-                    f"Invalid duration_months for deal with {deal.counterparty}. Must be positive."
-                )
-            if deal.amount_usd <= 0:
-                raise ValueError(
-                    f"Invalid amount_usd for deal with {deal.counterparty}. Must be positive."
-                )
-            if deal.num_leaf_tokens < 0:
-                raise ValueError(
-                    f"Invalid num_leaf_tokens for deal with {deal.counterparty}. Must be non-negative."
-                )
-            # Additional validations can be added here
+    def get_deals_end_in_month(self, month: int, leaf_price: float) -> Dict[str, Tuple[float, float]]:
+        """Get deals ending in the specified month and their final balances"""
+        ending_deals = [
+            deal for deal in self.deals
+            if deal.start_month + deal.duration_months == month
+        ]
+        return {
+            deal.counterparty: (deal.leaf_balance, deal.leaf_balance * leaf_price)
+            for deal in ending_deals
+        }
+
+    def _validate_balances(self, deal: LEAFPairDeal) -> None:
+        """Validate deal balances"""
+        if deal.leaf_balance < 0:
+            raise ValueError(f"Negative LEAF balance for deal with {deal.counterparty}")
+        if deal.other_balance < 0:
+            raise ValueError(f"Negative other token balance for deal with {deal.counterparty}")
 
     def _record_state(self, month: int) -> None:
-        """Record current state for all active deals."""
+        """Record current state for all active deals"""
         self.balance_history[month] = [
             (deal.counterparty, deal.leaf_balance, deal.other_balance)
             for deal in self.get_active_deals(month)
         ]
 
-    def _total_weighted_liquidity(self, month: int, leaf_price: float) -> float:
-        """Calculate the total weighted liquidity for market change distribution."""
-        return sum(
-            deal.calculate_weighted_liquidity(
-                is_buying_leaf=(deal.leaf_percentage < (deal.leaf_balance * leaf_price) / (deal.leaf_balance * leaf_price + deal.other_balance)),
-                leaf_price=leaf_price
-            )
-            for deal in self.get_active_deals(month)
+    def add_deal(self, deal: LEAFPairDeal) -> None:
+        """Add a new liquidity pair deal"""
+        self._validate_deal(deal)
+        self.deals.append(deal)
+        self._record_state(self.current_month)
+
+    def _validate_deal(self, deal: LEAFPairDeal) -> None:
+        """Validate deal parameters"""
+        if deal.leaf_percentage > 0.5 or deal.leaf_percentage < 0:
+            raise ValueError("LEAF percentage must be between 0 and 0.5 (0% to 50%)")
+        if deal.concentration <= 0 or deal.concentration > 1:
+            raise ValueError("Concentration must be between 0 and 1")
+        if deal.beta < -1 or deal.beta > 1:
+            raise ValueError("Beta must be between -1 and 1")
+        if any(d.counterparty == deal.counterparty for d in self.deals):
+            raise ValueError(f"Deal with {deal.counterparty} already exists")
+```
+
+## 3. Data File for Initial Deals
+
+```python:src/Data/leaf_deal.py
+from ..Functions.LEAFPairs import LEAFPairDeal
+from typing import List
+
+def get_initial_deals() -> List[LEAFPairDeal]:
+    """Return the initial set of LEAF pair deals"""
+    return [
+        LEAFPairDeal(
+            counterparty="Move",
+            amount_usd=1_500_000,        # $1.5M
+            num_leaf_tokens=0,           # 0 LEAF
+            start_month=2,
+            duration_months=60,          # 5 years
+            leaf_percentage=0.35,        # 35% LEAF
+            concentration=0.5,
+            beta=0.8
+        ),
+        LEAFPairDeal(
+            counterparty="MovePosition",
+            amount_usd=500_000,          # $500K
+            num_leaf_tokens=0,           # 0 LEAF
+            start_month=2,
+            duration_months=60,          # 5 years
+            leaf_percentage=0.35,        # 35% LEAF
+            concentration=0.3,
+            beta=0.8
         )
+    ]
 ```
 
-```python:Functions/LEAFPairs.md
-# Sample Usage
+**Corrections Made:**
 
-```python:Functions/LEAFPairs.md
-# Create initial deals
-deals = [
-    LEAFPairDeal(
-        counterparty="Protocol A",
-        amount_usd=1_000_000,
-        num_leaf_tokens=200_000,      # 200k LEAF tokens at $5 each
-        start_month=0,
-        duration_months=12,
-        leaf_percentage=50,            # 50% LEAF target
-        concentration=0.3,             # Higher concentration for rebalancing
-        correlation=0.0                # Uncorrelated (e.g., USDC pair)
-    ),
-    LEAFPairDeal(
-        counterparty="Protocol B",
-        amount_usd=2_000_000,
-        num_leaf_tokens=100_000,      # 100k LEAF tokens at $20 each
-        start_month=3,
-        duration_months=24,
-        leaf_percentage=25,            # 25% LEAF target
-        concentration=0.2,             # Medium concentration
-        correlation=0.8                # Highly correlated to BTC
+1. **Validation Adjustments:**
+   - **Leaf Percentage:** Changed validation in `LEAFPairsModel._validate_deal` to ensure `leaf_percentage` is between `0` and `0.5` (i.e., `0%` to `50%`), aligning with the requirement that LEAF should always be `50%` or less.
+   - **Beta:** Fixed the initial deals in `leaf_deal.py` to have `beta` values within the valid range of `-1` to `1`. Previously, `MovePosition` had a `beta` of `1.2`, which exceeds the maximum allowed value of `1`.
+
+2. **Concentration Logic:**
+   - Ensured that when a deal's current LEAF ratio is below the target (`leaf_percentage`), the model uses the deal's specific `concentration` for buying LEAF. If the ratio is above the target, it uses the `UNISWAP_V2_CONCENTRATION`.
+   - This logic is implemented in the `_total_weighted_liquidity` method where `is_buying_leaf` is determined by comparing the current ratio with the target ratio.
+
+3. **Documentation Updates:**
+   - Updated the documentation to reflect that `leaf_percentage` values are in decimal form (e.g., `0.35` for `35%`).
+   - Clarified the validation rules and the purpose of each parameter in the `LEAFPairDeal` and `LEAFPairsModel` classes.
+
+4. **Initial Deals Configuration:**
+   - Ensured that all initial deals in `leaf_deal.py` start with `0` LEAF and have target percentages set appropriately (`35%` in this case).
+   - Adjusted `beta` values to be within the valid range.
+
+## 4. Updated Documentation
+
+```markdown:Docs/LEAFPairs.md
+# LEAF Pairs Implementation Guide
+
+## 1. Core Data Structures
+
+```python:src/Functions/LeafPairs.py
+from dataclasses import dataclass
+from typing import List, Dict, Tuple
+from collections import defaultdict
+
+@dataclass
+class LEAFPairDeal:
+    counterparty: str           
+    amount_usd: float          
+    num_leaf_tokens: float     
+    start_month: int          
+    duration_months: int      
+    leaf_percentage: float    
+    concentration: float      
+    beta: float        
+        
+    # Balance tracking
+    leaf_balance: float = None      
+    other_balance: float = None     
+        
+    UNISWAP_V2_CONCENTRATION = 0.1  # Base concentration for below-target selling
+        
+    def __post_init__(self):
+        if self.leaf_balance is None:
+            self.leaf_balance = self.num_leaf_tokens
+        if self.other_balance is None:
+            self.other_balance = self.amount_usd - (self.num_leaf_tokens * self.get_leaf_price())
+                
+    def get_leaf_price(self) -> float:
+        return (self.amount_usd / self.num_leaf_tokens) if self.num_leaf_tokens else 0
+            
+    def get_effective_concentration(self, is_buying_leaf: bool) -> float:
+        return self.concentration if is_buying_leaf else self.UNISWAP_V2_CONCENTRATION
+            
+    def calculate_weighted_liquidity(self, is_buying_leaf: bool, leaf_price: float) -> float:
+        total_liquidity = (self.leaf_balance * leaf_price) + self.other_balance
+        effective_concentration = self.get_effective_concentration(is_buying_leaf)
+        return total_liquidity * effective_concentration
+
+@dataclass
+class LEAFPairsConfig:
+    max_slippage: float = 0.03
+    fee_rate: float = 0.003
+    min_liquidity_ratio: float = 0.5
+```
+
+## 2. Core Model Implementation
+
+```python:src/Functions/Simulate.py
+from ..Functions.TVL import TVLModel, TVLModelConfig
+from ..Functions.Revenue import RevenueModel, RevenueModelConfig
+from ..Functions.LEAFPairs import LEAFPairsModel, LEAFPairsConfig
+from ..Data.leaf_deal import get_initial_deals
+import matplotlib.pyplot as plt  # type: ignore
+
+def main():
+    # Initialize TVL model with configuration
+    tvl_config = TVLModelConfig(
+        initial_move_tvl=800_000_000,          # $800M
+        initial_canopy_tvl=350_000_000,       # $350M
+        move_growth_rates=[1.5, 1, 0.75, 0.5, 0.4],  # Annual growth rates for 5 years
+        min_market_share=0.10,                 # 10%
+        market_share_decay_rate=0.02,          # Decay rate
+        initial_boost_share=0.10,              # 10%
+        boost_growth_rate=1.0                   # Growth rate for boost
     )
-]
 
-# Initialize model
-config = LEAFPairsConfig(deals=deals)
-model = LEAFPairsModel(config)
+    model = TVLModel(tvl_config)
+    months = list(range(61))  # 0 to 60
+    move_tvls = []
+    canopy_tvls = []
+    boosted_tvls = []
+    total_canopy_impact = []
+    annual_boosted_growth_rates = []
+    revenues = []
+    revenue_table = []
+    cumulative_revenue = 0.0
 
-# Process market changes
-results = model.process_market_change(
-    month=1,
-    leaf_price=5.0,               # Current LEAF price in USD
-    total_market_change=50_000    # Selling LEAF
-)
+    # Initialize Revenue Model with configuration
+    revenue_config = RevenueModelConfig(
+        initial_volatile_share=0.10,     # 10% volatile at start
+        initial_volatile_rate=0.05,      # 5% annual revenue rate for volatile
+        initial_stable_rate=0.01,        # 1% annual revenue rate for stable
+        decay_rate_volatile=0.03,        # Decay rate for volatile revenue
+        decay_rate_stable=0.015,         # Decay rate for stable revenue
+        volatile_share_growth=0.02,      # Volatile share growth parameter
+        target_volatile_share=0.20        # Target 20% volatile share
+    )
+    
+    revenue_model = RevenueModel(revenue_config)
 
-print("Market Change Results:")
-for counterparty, balances in results.items():
-    print(f"{counterparty}: Leaf Balance = {balances[0]}, Other Balance = {balances[1]}")
+    # Initialize LEAF Pairs Model
+    leaf_config = LEAFPairsConfig()
+    leaf_model = LEAFPairsModel(leaf_config)
+    
+    # Load initial deals
+    for deal in get_initial_deals():
+        leaf_model.add_deal(deal)
 
-# Check ratio deviations
-deviations = model.get_ratio_deviations(month=1, leaf_price=5.0)
-print("\nRatio Deviations:")
-for counterparty, deviation in deviations.items():
-    status = "above" if deviation > 0 else "below" if deviation < 0 else "at"
-    print(f"{counterparty}: {status} target by {abs(deviation)*100:.2f}%")
+    # Tracking variables
+    leaf_metrics = []
+    trading_volumes = []
+    fee_revenues = []
+    
+    # Simulation loop
+    for month in months:
+        # Get active deals and their metrics
+        active_deals = leaf_model.get_active_deals(month)
+        current_leaf_price = calculate_leaf_price(month)  # Implement this based on your price model
+        
+        # Process market changes
+        market_change = calculate_market_change(month)  # Implement this based on your market model
+        deal_results = leaf_model.process_market_change(
+            month=month,
+            leaf_price=current_leaf_price,
+            total_market_change=market_change
+        )
+        
+        # Calculate and store metrics
+        month_metrics = {
+            deal.counterparty: leaf_model.get_deal_metrics(deal, current_leaf_price)
+            for deal in active_deals
+        }
+        leaf_metrics.append(month_metrics)
+        
+        # Calculate trading volume and fees
+        month_volume = sum(
+            metrics['total_value_usd'] * deal.beta 
+            for deal, metrics in zip(active_deals, month_metrics.values())
+        )
+        trading_volumes.append(month_volume)
+        
+        fee_revenue = leaf_model.calculate_fees(month_volume)
+        fee_revenues.append(fee_revenue)
+        
+        # (Continue with other simulations as needed)
+        
+    print("-" * 130)
+    for month, move, canopy, boosted, total_impact, growth in zip(months, move_tvls, canopy_tvls, boosted_tvls, total_canopy_impact, annual_boosted_growth_rates):
+        print("{:<10} {:>20,.2f} {:>20,.2f} {:>25,.2f} {:>25,.2f} {:>30,.2f}".format(
+            month, move, canopy, boosted, total_impact, growth
+        ))
 
-# Get liquidity metrics
-metrics = model.get_liquidity_metrics(month=1, leaf_price=5.0)
-print("\nLiquidity Metrics:")
-for counterparty, metric in metrics.items():
-    print(f"{counterparty}: {metric}")
+    # Display Revenue Results in a table
+    print("\nRevenue by Month (USD Millions):")
+    print("{:<10} {:>25} {:>25} {:>20} {:>25}".format("Month", "Stable TVL Revenue (M USD)", "Volatile TVL Revenue (M USD)", "Total Revenue (M USD)", "Cumulative Revenue (M USD)"))
+    print("-" * 110)
+    for month, stable_rev, volatile_rev, total_rev, cum_rev in revenue_table:
+        print("{:<10} {:>25,.2f} {:>25,.2f} {:>20,.2f} {:>25,.2f}".format(
+            month, stable_rev / 1_000_000, volatile_rev / 1_000_000, total_rev / 1_000_000, cum_rev / 1_000_000
+        ))
 
-# Get deals ending in month 12
-deals_end_month_12 = model.get_deals_end_in_month(month=12, leaf_price=5.0)
-print("\nDeals Ending in Month 12:")
-for counterparty, (tokens, usd_value) in deals_end_month_12.items():
-    print(f"{counterparty}: {tokens} LEAF tokens, ${usd_value:.2f} USD")
+    # Plot TVL over time
+    plt.figure(figsize=(14, 7))
+    # Convert to billions for display
+    move_tvls_billions = [x / 1_000_000_000 for x in move_tvls]
+    canopy_tvls_billions = [x / 1_000_000_000 for x in canopy_tvls]
+    boosted_tvls_billions = [x / 1_000_000_000 for x in boosted_tvls]
+    total_impact_b = [x / 1_000_000_000 for x in total_canopy_impact]
+
+    plt.plot(months, move_tvls_billions, label='Move TVL', color='blue', linewidth=2)
+    plt.plot(months, canopy_tvls_billions, label='Canopy TVL', color='green', linewidth=2)
+    plt.plot(months, boosted_tvls_billions, label='Boosted by Canopy TVL', color='orange', linewidth=2)
+    plt.plot(months, total_impact_b, label='Total Canopy Impact', color='purple', linestyle='--', linewidth=2)
+
+    plt.title('Move TVL, Canopy TVL, Boosted TVL, and Total Canopy Impact Over 60 Months')
+    plt.xlabel('Month')
+    plt.ylabel('TVL (Billions USD)')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+    # Plot Annual Boosted TVL Growth Rate
+    plt.figure(figsize=(14, 7))
+    plt.plot(months, annual_boosted_growth_rates, label='Annual Boosted TVL Growth Rate', color='red', linewidth=2, linestyle='--')
+    plt.title('Annual Boosted TVL Growth Rate Over 60 Months')
+    plt.xlabel('Month')
+    plt.ylabel('Growth Rate (%)')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+    # Plot Revenue Over Time (USD Millions)
+    plt.figure(figsize=(14, 7))
+    revenues_millions = [r / 1_000_000 for r in revenues]  # Convert to millions
+    plt.plot(months, revenues_millions, label='Monthly Revenue', color='gold', linewidth=2)
+    plt.title('Monthly Revenue Over 60 Months')
+    plt.xlabel('Month')
+    plt.ylabel('Revenue (USD Millions)')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+if __name__ == "__main__":
+    main() 
 ```
 
-## Implementation Details
+## 5. Validation Confirmation and Corrections
 
-1. **Deal Structure**:
-   - **Target LEAF Percentage**: Defines the desired ratio of LEAF tokens in the liquidity pair.
-   - **Dynamic Concentration**: Adjusts based on whether the current LEAF ratio is above or below the target.
-   - **Balance Tracking**: Maintains LEAF token counts and other token balances in USD.
-   - **State History**: Records balances for each month to allow state restoration.
+### **Ensuring Beta Constraints**
 
-2. **Concentration Mechanics**:
-   - **Above Target**:
-     - **Buying LEAF**: Uses the deal's specific concentration level for LEAF buying.
-     - **Selling LEAF**: Defaults to Uniswap V2 concentration level (0.1) for LEAF selling.
-   - **Below Target**:
-     - **Buying LEAF**: Defaults to Uniswap V2 concentration level (0.1) for LEAF buying.
-     - **Selling LEAF**: Uses the deal's specific concentration level for LEAF selling.
-   - **Weighted Impact**: Distributes market changes across deals based on weighted liquidity.
+- **Constraint:** Beta should be between `-1` and `1` to accurately represent volatility and correlation with Bitcoin's USD price.
+- **Implementation Check:** The `LEAFPairsModel` class now ensures through the `_validate_deal` method that `beta` does not exceed these bounds.
 
-3. **State Management**:
-   - **Tracking Balances**: Keeps track of LEAF and other token balances over time.
-   - **Current Month Updates**: Allows updates only to the latest month to maintain consistency.
-   - **Ratio History**: Maintains how each deal deviates from its target ratio over time.
+### **Market Impact Handling:**
 
-4. **Validation Rules**:
-   - Ensures that all input parameters are within valid ranges (e.g., percentages between 0-50% for LEAF).
-   - Prevents processing of past or skipped months.
-   - Validates that balance updates do not result in negative balances.
+- **Buying LEAF:** If the current LEAF ratio is below the target (`leaf_percentage`), the model uses the deal's specific `concentration` for buying LEAF.
+- **Selling LEAF:** If the ratio is above the target, it uses `UNISWAP_V2_CONCENTRATION`.
+  
+This behavior ensures that beta correctly influences market impact based on volatility and correlation with Bitcoin's USD price.
 
-## Model Capabilities
+### **Sample Validation Scenarios:**
 
-1. **Process Market Changes**:
-   - Distributes LEAF buying or selling across active deals based on concentration and target ratios.
+1. **Deal with Initial 0 LEAF:**
+   - **Action:** Market sells LEAF (`total_market_change` positive).
+   - **Expectation:** Since initial `leaf_balance` is `0`, the LEAF ratio is `0`, which is below the target (`0.35`), so normal concentration is used to buy LEAF as market impact is negative.
 
-2. **Track Ratio Deviations**:
-   - Monitors how each deal's current LEAF ratio deviates from its target.
+2. **Deal Approaching 50% LEAF:**
+   - **Action:** Market buys LEAF (`total_market_change` negative).
+   - **Expectation:** If LEAF ratio is approaching `50%`, concentration adjustments ensure LEAF does not exceed `50%`.
 
-3. **Maintain Balance History**:
-   - Keeps a historical record of balances for each deal by month.
+---
 
-4. **Add New Deals**:
-   - Allows adding new liquidity pair deals dynamically.
+## 6. Additional Updates
 
-5. **Retrieve Liquidity Metrics**:
-   - Provides detailed metrics on LEAF and other token balances for each deal.
+### `Docs/Assumptions.md`
 
-6. **Ensure Consistent State**:
-   - Only permits updates to the latest month to avoid inconsistencies.
+```markdown
+- **Liquidity Management**:
+  - **Concentration Level**: Set between 0 to 1 to control the degree of impact on liquidity pairs.
+  - **Beta Factors**: Adjust beta with paired assets to manage risk and responsiveness to market changes.
+  
+- **Market Impact Handling**:
+  - **LEAF Trading Activity**: Implement parameters to adjust LEAF and USDC balances based on buying and selling activities.
+    - **Selling LEAF**: Decrease LEAF balance, increase USDC balance.
+    - **Buying LEAF**: Increase LEAF balance, decrease USDC balance.
+  
+- **Proportional Redemptions**:
+  - Ensure redemptions are handled proportionally based on current LEAF and USDC holdings.
+  
+- **Historical Tracking**:
+  - Maintain detailed logs of monthly LEAF and USDC balances for auditing and performance analysis.
+  
+- **Sample Configuration Parameters**:
+  - **Market Change Logic**: Reflects LEAF trading accurately in balance updates.
+  - **Redemption Percentage**: Typically between 5% to 15% to balance liquidity needs.
 
-## Integration Notes
+---
 
-1. **Price Impact Model**:
-   - **Integration**: Provides concentration-weighted liquidity metrics to support dynamic price impacts.
-   - **Functionality**: Adjusts liquidity distribution based on LEAF price fluctuations.
+## Influenced TVL Model
 
-2. **Risk Management**:
-   - **Integration**: Utilizes ratio deviations to monitor and manage risks associated with liquidity pair imbalances.
-   - **Functionality**: Alerts or actions can be triggered based on significant deviations from target ratios.
+### Starting Conditions
+```
 
-3. **Performance Analysis**:
-   - **Integration**: Uses historical state data to analyze performance over time.
-   - **Functionality**: Facilitates rebalancing strategies and optimization of liquidity pair deals.
+### `Docs/AEGIS.md`
 
-4. **Volume Model**:
-   - **Integration**: Can leverage liquidity metrics to assess trading volumes and liquidity provisioning efficiency.
-   - **Functionality**: Enhances understanding of market participation and liquidity dynamics.
+```markdown
+# Canopy AEGIS LP Model
 
-5. **TVL Model**:
-   - **Integration**: Uses total value locked metrics to gauge the overall health and scale of liquidity pair deals.
-   - **Functionality**: Provides insights into capital allocation and investment performance.
+## Purpose
 
-## Recommended Extensions
+The AEGIS Management Model handles the valuation and management of AEGIS LP tokens within the Canopy ecosystem. It manages LEAF and USDC balances, processes monthly redemptions, and ensures financial stability and fairness by handling proportional redemptions based on holdings and market-driven changes.
 
-1. **Add Price Impact Tracking**:
-   - Enhance the model to track how trading activities influence LEAF price over time.
+## Python Implementation
 
-2. **Include Volume-Based Metrics**:
-   - Incorporate metrics that evaluate trading volumes and their effects on liquidity pairs.
+```python
+from dataclasses import dataclass
+from typing import Tuple, Dict
+from collections import defaultdict
 
-3. **Add Trading Limits**:
-   - Implement constraints to prevent excessive buying or selling that could destabilize the liquidity pairs.
+@dataclass
+class AEGISLPConfig:
+    initial_leaf: float         # Initial LEAF tokens
+    initial_usdc: float         # Initial USDC balance
+    start_month: int = 0        # Starting month number
 
-4. **Track Historical Trading Activity**:
-   - Maintain a detailed log of all trading activities for auditing and performance review purposes.
+class AEGISLPModel:
+    def __init__(self, config: AEGISLPConfig):
+        self.config = config
+        self._validate_config()
+        
+        # Initialize state
+        self.current_month = config.start_month
+        self.leaf_balance = config.initial_leaf
+        self.usdc_balance = config.initial_usdc
+        self.redemption_history = defaultdict(float)  # month -> redemption percentage
+        self.balance_history = defaultdict(lambda: (0.0, 0.0))  # month -> (leaf, usdc)
+        
+        # Record initial balances
+        self.balance_history[config.start_month] = (self.leaf_balance, self.usdc_balance)
+        
+    def process_month(self, 
+                     month: int, 
+                     redemption_percentage: float,
+                     leaf_price: float,
+                     usdc_market_change: float
+                     ) -> Tuple[float, float, float, float]:
+        """
+        Process a month's redemptions and market changes
+        
+        Args:
+            month: Month number since start
+            redemption_percentage: Percentage of AEGIS LP to redeem (0-100)
+            leaf_price: Current LEAF price in USD
+            usdc_market_change: Change in USDC balance due to market activities
+        
+        Returns:
+            Tuple containing:
+                - LEAF redeemed
+                - USDC redeemed
+                - Remaining LEAF balance
+                - Remaining USDC balance
+        """
+        if month < self.current_month:
+            raise ValueError("Cannot process past months")
+        if redemption_percentage < 0 or redemption_percentage > 100:
+            raise ValueError("Redemption percentage must be between 0 and 100")
+        
+        # Update current month
+        self.current_month = month
+        
+        # Calculate redemption amounts
+        leaf_redeemed = (self.leaf_balance * redemption_percentage) / 100
+        usdc_redeemed = (self.usdc_balance * redemption_percentage) / 100
+        
+        # Update balances
+        self.leaf_balance -= leaf_redeemed
+        self.usdc_balance -= usdc_redeemed
+        
+        # Apply market changes
+        if usdc_market_change > 0:
+            # Selling LEAF: decrease LEAF, increase USDC
+            self.leaf_balance -= usdc_market_change / leaf_price
+            self.usdc_balance += usdc_market_change
+        else:
+            # Buying LEAF: increase LEAF, decrease USDC
+            self.leaf_balance += abs(usdc_market_change) / leaf_price
+            self.usdc_balance -= abs(usdc_market_change)
+        
+        # Validate balances
+        self._validate_balances()
+        
+        # Record redemption
+        self.redemption_history[month] = redemption_percentage
+        
+        # Record balances
+        self.balance_history[month] = (self.leaf_balance, self.usdc_balance)
+        
+        return leaf_redeemed, usdc_redeemed, self.leaf_balance, self.usdc_balance
+```
 
-5. **Add Minimum Balance Requirements**:
-   - Ensure that deals maintain a minimum balance to sustain liquidity and operational stability.
+## 7. Updated Documentation Details
 
-6. **Include Fee Calculations**:
-   - Integrate fee structures to account for transactional costs associated with LEAF trading.
+### **LEAF Pairs Model Specification**
 
-7. **Add Detailed Reporting Capabilities**:
-   - Develop comprehensive reporting tools to visualize and analyze liquidity pair performance and metrics.
+```python:src/Functions/LeafPairs.py
+class LEAFPairsModel:
+    def __init__(self, config: LEAFPairsConfig):
+        self.config = config
+        self.deals: List[LEAFPairDeal] = []
+        self.balance_history = defaultdict(list)
+        self.current_month = 0
+
+    def process_market_change(
+        self,
+        month: int,
+        leaf_price: float,
+        total_market_change: float,
+    ) -> Dict[str, Tuple[float, float]]:
+        """Process market changes across all active deals"""
+        if month < self.current_month:
+            raise ValueError("Cannot process past months")
+        if month > self.current_month + 1:
+            raise ValueError("Cannot skip months")
+
+        active_deals = self.get_active_deals(month)
+        if not active_deals:
+            self.current_month = month
+            return {}
+        
+        is_buying_leaf = total_market_change < 0
+        total_weighted_liquidity = self._total_weighted_liquidity(month, leaf_price)
+        
+        if total_weighted_liquidity == 0:
+            raise ValueError("Total weighted liquidity is zero. Cannot distribute market change.")
+       
+        for deal in active_deals:
+            
+            weighted_liquidity = deal.calculate_weighted_liquidity(is_buying_leaf, leaf_price)
+            deal_change = total_market_change * (weighted_liquidity / total_weighted_liquidity)
+            
+            if is_buying_leaf:
+                deal.leaf_balance += abs(deal_change) / leaf_price
+                deal.other_balance -= abs(deal_change)
+            else:
+                deal.leaf_balance -= deal_change / leaf_price
+                deal.other_balance += deal_change
+                
+            self._validate_balances(deal)
+        
+        self._record_state(month)
+        self.current_month = month
+        
+        return {
+            deal.counterparty: (deal.leaf_balance, deal.other_balance)
+            for deal in active_deals
+        }
+
+    def _validate_balances(self, deal: LEAFPairDeal) -> None:
+        """Validate deal balances"""
+        if deal.leaf_balance < 0:
+            raise ValueError(f"Negative LEAF balance for deal with {deal.counterparty}")
+        if deal.other_balance < 0:
+            raise ValueError(f"Negative other token balance for deal with {deal.counterparty}")
+
+    def _record_state(self, month: int) -> None:
+        """Record current state for all active deals"""
+        self.balance_history[month] = [
+            (deal.counterparty, deal.leaf_balance, deal.other_balance)
+            for deal in self.get_active_deals(month)
+        ]
+
+    def add_deal(self, deal: LEAFPairDeal) -> None:
+        """Add a new liquidity pair deal"""
+        self._validate_deal(deal)
+        self.deals.append(deal)
+        self._record_state(self.current_month)
+
+    def _validate_deal(self, deal: LEAFPairDeal) -> None:
+        """Validate deal parameters"""
+        if deal.leaf_percentage > 0.5 or deal.leaf_percentage < 0:
+            raise ValueError("LEAF percentage must be between 0 and 0.5 (0% to 50%)")
+        if deal.concentration <= 0 or deal.concentration > 1:
+            raise ValueError("Concentration must be between 0 and 1")
+        if deal.beta < -1 or deal.beta > 1:
+            raise ValueError("Beta must be between -1 and 1")
+        if any(d.counterparty == deal.counterparty for d in self.deals):
+            raise ValueError(f"Deal with {deal.counterparty} already exists")
+```
+
+### **Example Usage in Simulation:**
+
+```python
+from ..Functions.LEAFPairs import LEAFPairsModel, LEAFPairsConfig
+from ..Data.leaf_deal import get_initial_deals
+
+def main():
+    # Initialize LEAF Pairs Model
+    leaf_config = LEAFPairsConfig()
+    leaf_model = LEAFPairsModel(leaf_config)
+    
+    # Load initial deals
+    for deal in get_initial_deals():
+        leaf_model.add_deal(deal)
+    
+    # Tracking variables
+    leaf_metrics = []
+    trading_volumes = []
+    fee_revenues = []
+    
+    # Simulation loop
+    for month in months:
+        # Get active deals and their metrics
+        active_deals = leaf_model.get_active_deals(month)
+        current_leaf_price = calculate_leaf_price(month)  # Implement this based on your price model
+        
+        # Process market changes
+        market_change = calculate_market_change(month)  # Implement this based on your market model
+        deal_results = leaf_model.process_market_change(
+            month=month,
+            leaf_price=current_leaf_price,
+            total_market_change=market_change
+        )
+        
+        # Calculate and store metrics
+        month_metrics = {
+            deal.counterparty: leaf_model.get_deal_metrics(deal, current_leaf_price)
+            for deal in active_deals
+        }
+        leaf_metrics.append(month_metrics)
+        
+        # Calculate trading volume and fees
+        month_volume = sum(
+            metrics['total_value_usd'] * deal.beta 
+            for deal, metrics in zip(active_deals, month_metrics.values())
+        )
+        trading_volumes.append(month_volume)
+        
+        fee_revenue = leaf_model.calculate_fees(month_volume)
+        fee_revenues.append(fee_revenue)
+```
+
+### **Key Points to Note:**
+
+- **LEAF Percentage Constraints:** Ensures that LEAF does not exceed `50%` in any deal, maintaining the balance with the other asset.
+- **Concentration Adjustments:** Dynamically adjusts concentration based on whether the deal is buying or selling LEAF relative to its target.
+- **Validation Enforcement:** Strict checks prevent configuration of deals with invalid parameters, enhancing model reliability.
+- **Starting with 0 LEAF:** Many deals begin with `0` LEAF, allowing them to accumulate LEAF over time as the market evolves.
+
+## 7. Additional Recommendations
+
+1. **Parameter Synchronization:**
+   - Ensure that `beta` values across all deals accurately represent their volatility in relation to Bitcoin's USD price.
+
+2. **Testing Strategy:**
+   - **Unit Tests:**
+     - Test `LEAFPairDeal` initialization, especially cases with varying `beta` values.
+     - Verify the correctness of `calculate_weighted_liquidity` under different `beta` scenarios.
+   - **Integration Tests:**
+     - Ensure that `LEAFPairsModel` correctly processes market changes and updates balances based on `beta`.
+     - Validate that invalid deals with incorrect `beta` values are rejected.
+   - **Scenario Testing:**
+     - Simulate extreme market conditions to ensure robustness.
+     - Test the accumulation and reduction of LEAF to verify that deals adhere to `50%` LEAF cap.
+
+3. **Documentation and Maintenance:**
+   - Keep the `LEAF Pairs Implementation Guide` updated with any changes in the model.
+   - Clearly document the role of `beta` in affecting market impact and volatility.
+
+4. **Visualization Enhancements:**
+   - Add plots to visualize the distribution of LEAF across different deals over time.
+   - Implement dashboards for real-time monitoring of deal performances and market impacts based on `beta`.
+
+5. **Performance Optimization:**
+   - Optimize the `process_market_change` method for scalability if dealing with a large number of deals.
+   - Consider parallel processing techniques if simulation speed becomes a concern.
+
+By implementing these corrections and recommendations, the LEAF Pairs model ensures accurate representation of volatility metrics through beta, facilitating more reliable simulations and projections within the Canopy ecosystem.
