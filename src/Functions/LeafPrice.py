@@ -6,16 +6,21 @@ from typing import Tuple
 @dataclass
 class LEAFPriceConfig:
     """Configuration for LEAF price calculations"""
-    min_price: float = 0.01  # Minimum allowed LEAF price
-    max_price: float = 100.0  # Maximum allowed LEAF price
+    min_price: float = 0.1  # Minimum allowed LEAF price
+    max_price: float = 10.0  # Maximum allowed LEAF price
     price_impact_threshold: float = 0.10  # Maximum price impact allowed (10%)
+    initial_price: float = 1.0  # Initial LEAF price
+    stability_period: int = 12  # Number of months for stability period
+    monthly_growth_rate: float = 0.05  # Monthly growth rate
 
 class LEAFPriceModel:
     """
     Handles LEAF price calculations including price impact from trades
     """
-    def __init__(self, config: LEAFPriceConfig = LEAFPriceConfig()):
+    def __init__(self, config: LEAFPriceConfig):
         self.config = config
+        self.price_history = {}
+        self.current_price = config.initial_price
 
     def calculate_price_impact(
         self,
@@ -121,3 +126,43 @@ class LEAFPriceModel:
         max_trade = total_liquidity * self.config.price_impact_threshold
         
         return max_trade if is_buy else -max_trade
+
+    def get_current_price(self, month: int) -> float:
+        """
+        Get the LEAF price for the current month.
+        
+        Args:
+            month: Current simulation month
+            
+        Returns:
+            float: Current LEAF price
+        """
+        # If we have a recorded price for this month, return it
+        if month in self.price_history:
+            return self.price_history[month]
+            
+        # Otherwise calculate based on config parameters
+        if month <= self.config.stability_period:
+            # During stability period, maintain initial price
+            price = self.config.initial_price
+        else:
+            # After stability period, apply growth rate
+            months_since_stability = month - self.config.stability_period
+            price = self.config.initial_price * (1 + self.config.monthly_growth_rate) ** months_since_stability
+            
+        # Store in history and return
+        self.price_history[month] = price
+        self.current_price = price
+        return price
+
+    def update_price(self, month: int, new_price: float) -> None:
+        """
+        Update the price for a specific month.
+        
+        Args:
+            month: Month to update
+            new_price: New price value
+        """
+        self.price_history[month] = new_price
+        if month == max(self.price_history.keys()):
+            self.current_price = new_price

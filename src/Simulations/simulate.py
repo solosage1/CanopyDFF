@@ -273,8 +273,8 @@ def main():
             
             # Update AEGIS balances based on redemptions
             aegis_model.update_balances(
-                usdc_delta=-usdc_redemption,
-                leaf_delta=-leaf_redemption
+                usdc_change=-usdc_redemption,
+                leaf_change=-leaf_redemption
             )
             
             oak_states.append(oak_model.get_state())
@@ -288,8 +288,13 @@ def main():
         
         # Update AEGIS if active
         if month >= activation_months['AEGIS_START_MONTH']:
-            # Calculate redemption rate based on OAK redemptions
-            oak_redemption_amount = oak_model.get_monthly_redemption_amount(month)
+            # Get OAK redemptions from the previous step
+            if oak_states:
+                last_state = oak_states[-1]
+                oak_redemption_amount = last_state.get('redemption_amount', 0)
+            else:
+                oak_redemption_amount = 0
+
             redemption_rate = oak_redemption_amount / oak_config.total_oak_supply if oak_config.total_oak_supply > 0 else 0
             
             # Handle redemptions with calculated rate

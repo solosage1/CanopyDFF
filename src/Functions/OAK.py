@@ -194,11 +194,28 @@ class OAKModel:
         Retrieve the current state of the OAKModel.
         
         Returns:
-            A dictionary containing current OAK supply, redemption history, and other relevant metrics.
+            A dictionary containing current OAK supply, redemption history, and other metrics.
         """
+        # Get the current month's redemption amount
+        current_redemptions = self.redemption_history.get(self.month, {})
+        total_redemption = sum(current_redemptions.values()) if current_redemptions else 0
+        
         return {
             "current_month": self.month,
             "remaining_oak_supply": self.remaining_oak_supply,
             "oak_supply_history": self.oak_supply_history,
             "redemption_history": self.redemption_history,
+            "redemption_amount": total_redemption
         }
+
+    def get_monthly_redemption_amount(self, month: int) -> float:
+        """
+        Get the total amount of OAK redeemed in a specific month.
+        
+        Args:
+            month: The month to check
+            
+        Returns:
+            float: Total amount of OAK redeemed in the specified month
+        """
+        return sum(self.redemption_history.get(month, {}).values())

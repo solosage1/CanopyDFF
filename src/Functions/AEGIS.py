@@ -88,3 +88,23 @@ class AEGISModel:
             x_concentration=1.0,  # 1x for LEAF
             y_concentration=5.0   # 5x for USDC
         ) 
+
+    def update_balances(self, usdc_change: float = 0, leaf_change: float = 0) -> None:
+        """
+        Update AEGIS balances based on changes in USDC and LEAF.
+        
+        Args:
+            usdc_change: Change in USDC balance (positive for increase)
+            leaf_change: Change in LEAF balance (positive for increase)
+        """
+        self.usdc_balance += usdc_change
+        self.leaf_balance += leaf_change
+        
+        # Ensure balances don't go negative
+        self.usdc_balance = max(0, self.usdc_balance)
+        self.leaf_balance = max(0, self.leaf_balance)
+        
+        # Update history at current month if it exists
+        if hasattr(self, 'month'):
+            self.usdc_balance_history[self.month] = self.usdc_balance
+            self.leaf_balance_history[self.month] = self.leaf_balance
