@@ -1,70 +1,52 @@
-from dataclasses import dataclass
-from typing import Tuple, List
-import math
+from dataclasses import dataclass, field
+from typing import List, Dict
+from src.Functions.TVLContributions import TVLContribution
+from src.Functions.TVLLoader import TVLLoader
 
 @dataclass
 class TVLModelConfig:
-    initial_move_tvl: float                    # Initial Move TVL in USD
-    initial_canopy_tvl: float                  # Initial Canopy TVL in USD
-    move_growth_rates: List[float]             # Annual growth rates for Move by year
-    min_market_share: float                    # Minimum market share floor
-    market_share_decay_rate: float             # Rate at which market share declines
+    # Market parameters
+    initial_move_tvl: float
+    initial_canopy_tvl: float
+    move_growth_rates: List[float]
+    min_market_share: float
+    market_share_decay_rate: float
+    max_months: int = 60
 
 class TVLModel:
     def __init__(self, config: TVLModelConfig):
         self.config = config
-        self._initial_market_share = config.initial_canopy_tvl / config.initial_move_tvl
-        self._validate_config()
+        self.contributions = []
+        self.month = 0
+        self.loader = TVLLoader(self)
 
-    def get_tvls(self, month: int) -> Tuple[float, float]:
-        """Returns (move_tvl, canopy_tvl)"""
-        move_tvl = self._calculate_move_tvl(month)
-        canopy_share = self._calculate_canopy_share(month)
-        canopy_tvl = move_tvl * canopy_share
+    def add_contribution(self, tvl_type: str, config: Dict) -> TVLContribution:
+        """Add a new contribution during simulation."""
+        return self.loader.add_new_contribution(tvl_type, config)
 
-        return move_tvl, canopy_tvl
+    def step(self):
+        """Advance the model by one month."""
+        for contrib in self.contributions:
+            if contrib.start_month <= self.month:
+                contrib.update_amount(self.month)
+                contrib.check_exit(self.month)
+        self.month += 1
 
-    def _calculate_move_tvl(self, month: int) -> float:
-        """Calculate the total Move TVL for the given month."""
-        year = month // 12
-        month_in_year = month % 12
+    def get_total_tvl(self) -> float:
+        """Calculate total active TVL."""
+        return sum(contrib.amount_usd for contrib in self.contributions if contrib.active)
 
-        if year >= len(self.config.move_growth_rates):
-            # Apply the last growth rate for remaining months
-            annual_rate = self.config.move_growth_rates[-1]
-        else:
-            # Interpolate between current and next year's rate if available
-            current_rate = self.config.move_growth_rates[year]
-            if year + 1 < len(self.config.move_growth_rates):
-                next_rate = self.config.move_growth_rates[year + 1]
-                # Linear interpolation between rates based on month
-                annual_rate = current_rate + (next_rate - current_rate) * (month_in_year / 12)
-            else:
-                annual_rate = current_rate
+    # Exit conditions
+    def contract_end_condition(self, contribution: TVLContribution, month: int) -> bool:
+        return month >= contribution.end_month
 
-        monthly_rate = (1 + annual_rate) ** (1/12) - 1  # Monthly growth rate
-        cumulative_months = month  # Total months since start
-        move_tvl = self.config.initial_move_tvl * ((1 + monthly_rate) ** cumulative_months)
+    def decay_exit_condition(self, contribution: TVLContribution, month: int) -> bool:
+        return contribution.amount_usd <= 0
 
-        return move_tvl
+    def boosted_exit_condition(self, contribution: TVLContribution, month: int) -> bool:
+        actual_boost_rate = self.get_actual_boost_rate(contribution, month)
+        return actual_boost_rate < contribution.expected_boost_rate
 
-    def _calculate_canopy_share(self, month: int) -> float:
-        """Calculate Canopy's market share for the given month."""
-        decay = math.exp(-self.config.market_share_decay_rate * month / 12)
-        share = (
-            self.config.min_market_share +
-            (self._initial_market_share - self.config.min_market_share) * decay
-        )
-        return max(share, self.config.min_market_share)
-
-    def _validate_config(self) -> None:
-        if self.config.initial_move_tvl <= 0:
-            raise ValueError("Initial Move TVL must be positive")
-        if self.config.initial_canopy_tvl < 0:
-            raise ValueError("Initial Canopy TVL cannot be negative")
-        if self.config.initial_canopy_tvl > self.config.initial_move_tvl:
-            raise ValueError("Canopy TVL cannot exceed Move TVL")
-        if not self.config.move_growth_rates:
-            raise ValueError("Must provide at least one growth rate")
-        if any(r < -1 for r in self.config.move_growth_rates):
-            raise ValueError("Growth rates cannot be less than -100%") 
+    def get_actual_boost_rate(self, contribution: TVLContribution, month: int) -> float:
+        # Placeholder for actual boost rate calculation
+        return contribution.expected_boost_rate * max(0.5, 1 - 0.01 * month)

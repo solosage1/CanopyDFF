@@ -1,6 +1,7 @@
 from dataclasses import dataclass
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from collections import defaultdict
+from .UniswapV2Math import UniswapV2Math
 
 @dataclass
 class LEAFPairDeal:
@@ -26,6 +27,7 @@ class LEAFPairsModel:
         self.config = config
         self.deals = deals
         self.balance_history = defaultdict(list)
+        self.month = 0
         self._initialize_deals()
 
     def _initialize_deals(self):
@@ -85,3 +87,41 @@ class LEAFPairsModel:
             raise ValueError("Concentration must be between 0% and 100%")
         if any(d.counterparty == deal.counterparty for d in self.deals):
             raise ValueError(f"Deal with {deal.counterparty} already exists")
+
+    def get_liquidity_within_percentage(self, percentage: float, current_price: float, deal_index: int = None) -> Tuple[float, float]:
+        active_deals = self.get_active_deals(self.month)
+        if deal_index is not None:
+            active_deals = [active_deals[deal_index]]
+        
+        total_leaf_within_range = 0.0
+        total_other_within_range = 0.0
+        
+        for deal in active_deals:
+            if deal.leaf_balance == 0:
+                continue
+                
+            # Calculate current LEAF ratio
+            total_value = (deal.leaf_balance * current_price) + deal.other_balance
+            current_leaf_ratio = (deal.leaf_balance * current_price) / total_value
+            
+            # Set concentration levels based on LEAF ratio vs target
+            leaf_heavy = current_leaf_ratio > deal.leaf_percentage
+            
+            # Get concentrations
+            leaf_concentration = deal.base_concentration * 10 if leaf_heavy else 1.0
+            other_concentration = 1.0 if leaf_heavy else deal.base_concentration * 10
+            
+            # Calculate liquidity using shared math
+            leaf_amount, other_amount = UniswapV2Math.get_liquidity_within_range(
+                x_reserve=deal.leaf_balance,
+                y_reserve=deal.other_balance,
+                current_price=current_price,
+                price_range_percentage=percentage,
+                x_concentration=leaf_concentration,
+                y_concentration=other_concentration
+            )
+            
+            total_leaf_within_range += leaf_amount
+            total_other_within_range += other_amount
+        
+        return round(total_leaf_within_range, 8), round(total_other_within_range, 8)

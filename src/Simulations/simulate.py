@@ -1,9 +1,12 @@
 import matplotlib.pyplot as plt  # type: ignore
 from src.Functions.TVL import TVLModel, TVLModelConfig
-from src.Functions.boosted_tvl import BoostedTVLModel, BoostedTVLConfig
 from src.Functions.Revenue import RevenueModel, RevenueModelConfig
+from src.Functions.TVLContributions import TVLContribution, TVLContributionHistory
 from src.Functions.LEAFPairs import LEAFPairsModel, LEAFPairsConfig
 from src.Data.leaf_deal import initialize_deals
+from typing import Dict, List
+from src.Functions.AEGIS import AEGISConfig, AEGISModel
+import numpy as np # type: ignore
 
 def calculate_leaf_price(month: int, total_liquidity: float) -> float:
     """
@@ -12,169 +15,307 @@ def calculate_leaf_price(month: int, total_liquidity: float) -> float:
     # Implement your LEAF price model here.
     return 1.0  # Placeholder value
 
+def initialize_tvl_contributions(tvl_model: TVLModel, config: Dict) -> None:
+    """Initialize all TVL contributions based on simulation config."""
+    # Load initial contributions from data file
+    tvl_model.loader.load_initial_contributions()
+
+def print_monthly_summary(month: int, monthly_revenue: Dict[str, float], cumulative_revenue: float) -> None:
+    """Print a summary of monthly revenue by TVL type."""
+    print(f"{month:3d}    {monthly_revenue['ProtocolLocked']/1e6:12.2f} {monthly_revenue['Contracted']/1e6:12.2f} "
+          f"{monthly_revenue['Organic']/1e6:12.2f} {monthly_revenue['Boosted']/1e6:12.2f} "
+          f"{sum(monthly_revenue.values())/1e6:15.2f} {cumulative_revenue/1e6:20.2f}")
+
+def plot_aegis_data(months: List[int], aegis_model: AEGISModel):
+    """Plot AEGIS model data."""
+    plt.figure(figsize=(10, 6))
+
+    # LEAF Price Over Time
+    plt.subplot(2, 1, 1)
+    plt.plot(months, aegis_model.leaf_price_history, label='LEAF Price')
+    plt.title('LEAF Price Over Time (AEGIS Model)')
+    plt.xlabel('Month')
+    plt.ylabel('Price in USDC')
+    plt.legend()
+
+    # Balances Over Time
+    plt.subplot(2, 1, 2)
+    plt.plot(months, aegis_model.leaf_balance_history, label='LEAF Balance')
+    plt.plot(months, aegis_model.usdc_balance_history, label='USDC Balance')
+    plt.title('AEGIS Balances Over Time')
+    plt.xlabel('Month')
+    plt.ylabel('Balance')
+    plt.legend()
+
+    plt.tight_layout()
+    plt.show()
+
+def track_liquidity_metrics(
+    month: int,
+    price: float,
+    aegis_model: AEGISModel,
+    leaf_pairs_model: LEAFPairsModel
+) -> Dict:
+    # Get AEGIS liquidity within 10% of price
+    aegis_leaf, aegis_usdc = aegis_model.get_liquidity_within_percentage(10, price)
+    
+    # Get LEAFPairs liquidity within 10% of price
+    leaf_pairs_leaf = 0
+    leaf_pairs_other = 0
+    active_deals = leaf_pairs_model.get_active_deals(month)
+    
+    # Get total liquidity across all active deals
+    if active_deals:  # Only process if there are active deals
+        leaf, other = leaf_pairs_model.get_liquidity_within_percentage(10, price)
+        leaf_pairs_leaf = leaf
+        leaf_pairs_other = other
+    
+    return {
+        'month': month,
+        'price': price,
+        'aegis_leaf': aegis_leaf,
+        'aegis_usdc': aegis_usdc,
+        'leaf_pairs_leaf': leaf_pairs_leaf,
+        'leaf_pairs_other': leaf_pairs_other,
+        'aegis_total_usd': (aegis_leaf * price) + aegis_usdc,
+        'leaf_pairs_total_usd': (leaf_pairs_leaf * price) + leaf_pairs_other
+    }
+
+def plot_liquidity_metrics(metrics_history: List[Dict]):
+    months = [m['month'] for m in metrics_history]
+    
+    plt.figure(figsize=(15, 10))
+    
+    # Plot 1: LEAF Liquidity Comparison
+    plt.subplot(2, 2, 1)
+    plt.plot(months, [m['aegis_leaf'] for m in metrics_history], label='AEGIS LEAF')
+    plt.plot(months, [m['leaf_pairs_leaf'] for m in metrics_history], label='LEAFPairs LEAF')
+    plt.title('LEAF Liquidity Within 10% Range')
+    plt.xlabel('Month')
+    plt.ylabel('LEAF Amount')
+    plt.legend()
+    plt.grid(True)
+    
+    # Plot 2: Stablecoin Liquidity Comparison
+    plt.subplot(2, 2, 2)
+    plt.plot(months, [m['aegis_usdc'] for m in metrics_history], label='AEGIS USDC')
+    plt.plot(months, [m['leaf_pairs_other'] for m in metrics_history], label='LEAFPairs Other')
+    plt.title('Stablecoin Liquidity Within 10% Range')
+    plt.xlabel('Month')
+    plt.ylabel('USD Amount')
+    plt.legend()
+    plt.grid(True)
+    
+    # Plot 3: Total USD Value Comparison
+    plt.subplot(2, 2, 3)
+    plt.plot(months, [m['aegis_total_usd'] for m in metrics_history], label='AEGIS Total')
+    plt.plot(months, [m['leaf_pairs_total_usd'] for m in metrics_history], label='LEAFPairs Total')
+    plt.title('Total USD Value Within 10% Range')
+    plt.xlabel('Month')
+    plt.ylabel('USD Value')
+    plt.legend()
+    plt.grid(True)
+    
+    # Plot 4: Combined Liquidity Ratio
+    plt.subplot(2, 2, 4)
+    ratios = [(m['aegis_total_usd'] + m['leaf_pairs_total_usd']) / (m['aegis_total_usd'] or 1) for m in metrics_history]
+    plt.plot(months, ratios)
+    plt.title('Combined/AEGIS Liquidity Ratio')
+    plt.xlabel('Month')
+    plt.ylabel('Ratio')
+    plt.grid(True)
+    
+    plt.tight_layout()
+    plt.show()
+
 def main():
-    # Define activation months for components
+    # Initialize configuration
+    config = {
+        'initial_move_tvl': 1_000_000_000,
+        'initial_canopy_tvl': 500_000_000,
+        'move_growth_rates': [0.10, 0.08, 0.06],
+        'min_market_share': 0.05,
+        'market_share_decay_rate': 0.01,
+        'max_months': 60
+    }
+
+    # Define activation months for different features
     activation_months = {
         'LEAF_PAIRS_START_MONTH': 1,
+        'BOOST_START_MONTH': 6,
         'AEGIS_START_MONTH': 3,
         'OAK_START_MONTH': 4,
         'MARKET_START_MONTH': 5,
         'PRICE_START_MONTH': 5,
-        'DISTRIBUTION_START_MONTH': 5,
+        'DISTRIBUTION_START_MONTH': 5
     }
 
-    # Initialize TVL model with configuration
-    tvl_config = TVLModelConfig(
-        initial_move_tvl=800_000_000,         # $800M
-        initial_canopy_tvl=350_000_000,       # $350M
-        move_growth_rates=[1.5, 1, 0.75, 0.5, 0.4],  # Annual growth rates for 5 years
-        min_market_share=0.10,                # 10%
-        market_share_decay_rate=0.02          # Decay rate
+    # Initialize models
+    tvl_model = TVLModel(TVLModelConfig(**config))
+    revenue_model = RevenueModel(RevenueModelConfig(), tvl_model=tvl_model)
+    leaf_pairs_model = LEAFPairsModel(LEAFPairsConfig(), initialize_deals())
+    
+    # Initialize AEGIS model
+    aegis_config = AEGISConfig(
+        initial_leaf_balance=1_000_000_000,
+        initial_usdc_balance=500_000,
+        leaf_price_decay_rate=0.005,
+        max_months=config['max_months']
     )
-    tvl_model = TVLModel(tvl_config)
+    aegis_model = AEGISModel(aegis_config)
 
-    # Initialize Boosted TVL model
-    boosted_tvl_config = BoostedTVLConfig(
-        initial_boost_share=0.10,             # 10%
-        boost_growth_rate=1.0,                # Growth rate for boost
-        max_months=60
-    )
-    boosted_tvl_model = BoostedTVLModel(boosted_tvl_config)
+    # Initialize history arrays with correct length
+    aegis_model.leaf_balance_history = [aegis_config.initial_leaf_balance] * config['max_months']
+    aegis_model.usdc_balance_history = [aegis_config.initial_usdc_balance] * config['max_months']
+    aegis_model.leaf_price_history = [1.0] * config['max_months']
 
-    # Initialize Revenue Model with configuration
-    revenue_config = RevenueModelConfig(
-        initial_volatile_share=0.10,     # 10% volatile at start
-        target_volatile_share=0.20,      # Target 20% volatile share
-        volatile_share_growth=0.02,      # Not used in current implementation
-        initial_volatile_rate=0.05,      # 5% annual revenue rate for volatile
-        target_volatile_rate=0.02,       # 2% annual revenue rate for volatile
-        initial_stable_rate=0.01,        # 1% annual revenue rate for stable
-        target_stable_rate=0.005,        # 0.5% annual revenue rate for stable
-        share_growth_duration=24         # Duration over which shares and rates change (in months)
-    )
-    revenue_model = RevenueModel(revenue_config)
+    # Initialize contributions from data file
+    initialize_tvl_contributions(tvl_model, config)
 
-    # Initialize LEAFPairs Model variables
-    leaf_model = None
-    leaf_config = LEAFPairsConfig()
-
-    months = list(range(61))  # 0 to 60
-
-    # Initialize data storage lists
-    move_tvls = []
-    canopy_tvls = []
-    boosted_tvls = []
-    total_tvls = []
-    total_revenues = []
-    stable_revenues = []
-    volatile_revenues = []
+    # Tracking variables
+    months = list(range(config['max_months']))
+    total_tvl_by_month = []
+    revenue_by_month = []
     cumulative_revenues = []
     leaf_prices = []
-    leaf_total_liquidities = []
-    cumulative_revenue = 0.0
+    metrics_history = []
+    history_tracker = TVLContributionHistory()
 
-    # Initialize previous_leaf_price
-    previous_leaf_price = 1.0  # Starting with a default LEAF price
+    # Print header
+    print("Month          Protocol     Contracted        Organic        Boosted       Total Rev (M)       Cumulative Rev (M)")
+    print("-" * 113)
 
+    # Simulation loop
     for month in months:
-        # Get Move TVL and Canopy TVL
-        move_tvl, canopy_tvl = tvl_model.get_tvls(month)
-        move_tvls.append(move_tvl)
-        canopy_tvls.append(canopy_tvl)
-
-        # Determine if boosted TVL is active
-        is_boost_active = (month >= activation_months.get('LEAF_PAIRS_START_MONTH', 0))
-
-        # Get boosted TVL
-        boosted_tvl = boosted_tvl_model.get_boosted_tvl(
-            month, canopy_tvl, move_tvl, is_active=is_boost_active
-        )
-        boosted_tvls.append(boosted_tvl)
-
-        # Total TVL contributing to revenue
-        if is_boost_active:
-            total_tvl = canopy_tvl + boosted_tvl
-        else:
-            total_tvl = canopy_tvl
-        total_tvls.append(total_tvl)
-
+        # Record state before updates
+        history_tracker.record_state(month, tvl_model.contributions)
+        
+        # Update TVL and calculate metrics
+        tvl_model.step()
+        total_tvl = tvl_model.get_total_tvl()
+        total_tvl_by_month.append(total_tvl)
+        
         # Calculate revenue
-        stable_rev, volatile_rev, total_rev = revenue_model.calculate_revenue(month, total_tvl)
-        cumulative_revenue += total_rev
-        total_revenues.append(total_rev)
-        stable_revenues.append(stable_rev)
-        volatile_revenues.append(volatile_rev)
-        cumulative_revenues.append(cumulative_revenue)
+        monthly_revenue = revenue_model.calculate_revenue(month)
+        revenue_by_month.append(monthly_revenue)
+        cumulative_revenues.append(revenue_model.cumulative_revenue)
 
-        # LEAF Pair logic
-        if month == activation_months['LEAF_PAIRS_START_MONTH']:
-            initial_deals = initialize_deals()
-            leaf_model = LEAFPairsModel(leaf_config, initial_deals)
+        # Calculate LEAF price for this month
+        leaf_price = calculate_leaf_price(month, total_tvl)
+        leaf_prices.append(leaf_price)
 
-        if leaf_model and month >= activation_months['LEAF_PAIRS_START_MONTH']:
-            # Update LEAF pair deals
-            total_liquidity = leaf_model.get_total_liquidity(month, leaf_price=previous_leaf_price)
-            leaf_price = calculate_leaf_price(month, total_liquidity)
-            leaf_prices.append(leaf_price)
-            leaf_total_liquidities.append(total_liquidity)
-            leaf_model.update_deals(month, leaf_price)
-            previous_leaf_price = leaf_price  # Update for next iteration
-        else:
-            leaf_prices.append(None)
-            leaf_total_liquidities.append(0.0)
+        # Update AEGIS model if active
+        if month >= activation_months['AEGIS_START_MONTH']:
+            aegis_model.handle_redemptions(month, 0.02)  # 2% monthly redemption
+            aegis_model.step(month)
+            
+        # Always update history arrays at the correct index
+        aegis_model.leaf_balance_history[month] = aegis_model.leaf_balance
+        aegis_model.usdc_balance_history[month] = aegis_model.usdc_balance
+        aegis_model.leaf_price_history[month] = leaf_price
 
-        # Implement OAK logic when active
-        if month >= activation_months.get('OAK_START_MONTH', 0):
-            # Placeholder for OAK-related logic
-            pass
+        # Update LEAF pairs if active
+        if month >= activation_months['LEAF_PAIRS_START_MONTH']:
+            leaf_pairs_model.update_deals(month, leaf_price)
 
-        # Implement other components as per activation months
+        # Track liquidity metrics
+        metrics = track_liquidity_metrics(month, leaf_price, aegis_model, leaf_pairs_model)
+        metrics_history.append(metrics)
 
-    # Output Revenue Table
-    print(f"{'Month':<8}{'Stable Rev (M)':>20}{'Volatile Rev (M)':>20}{'Total Rev (M)':>20}{'Cumulative Rev (M)':>25}")
-    print("-" * 93)
-    for i, month in enumerate(months):
-        print(f"{month:<8}{stable_revenues[i] / 1_000_000:>20,.2f}{volatile_revenues[i] / 1_000_000:>20,.2f}{total_revenues[i] / 1_000_000:>20,.2f}{cumulative_revenues[i] / 1_000_000:>25,.2f}")
+        # Print monthly summary
+        print_monthly_summary(month, monthly_revenue, revenue_model.cumulative_revenue)
 
-    # Plotting and Visualization
-    plt.figure(figsize=(12, 8))
-
-    # Plot Move TVL, Canopy TVL, Boosted TVL
-    plt.subplot(2, 2, 1)
-    plt.plot(months, [tvl / 1_000_000_000 for tvl in move_tvls], label='Move TVL')
-    plt.plot(months, [tvl / 1_000_000_000 for tvl in canopy_tvls], label='Canopy TVL')
-    plt.plot(months, [tvl / 1_000_000_000 for tvl in boosted_tvls], label='Boosted TVL')
-    plt.title('TVL Over Time')
+    # After simulation loop, create all visualizations
+    plt.figure(figsize=(15, 10))
+    
+    # Original TVL Plot
+    plt.subplot(3, 2, 1)
+    plt.plot(months, total_tvl_by_month)
+    plt.title('Total TVL Over Time')
     plt.xlabel('Month')
-    plt.ylabel('TVL (in billions USD)')
-    plt.legend()
+    plt.ylabel('TVL (USD)')
+    plt.grid(True)
 
-    # Plot Revenue
-    plt.subplot(2, 2, 2)
-    plt.plot(months, [rev / 1_000_000 for rev in total_revenues], label='Total Revenue')
-    plt.plot(months, [rev / 1_000_000 for rev in stable_revenues], label='Stable Revenue')
-    plt.plot(months, [rev / 1_000_000 for rev in volatile_revenues], label='Volatile Revenue')
-    plt.title('Monthly Revenue Over Time')
+    # Original Revenue Plot
+    plt.subplot(3, 2, 2)
+    protocol_locked = [rev['ProtocolLocked'] for rev in revenue_by_month]
+    contracted = [rev['Contracted'] for rev in revenue_by_month]
+    organic = [rev['Organic'] for rev in revenue_by_month]
+    boosted = [rev['Boosted'] for rev in revenue_by_month]
+    
+    plt.plot(months, protocol_locked, label='Protocol Locked')
+    plt.plot(months, contracted, label='Contracted')
+    plt.plot(months, organic, label='Organic')
+    plt.plot(months, boosted, label='Boosted')
+    plt.title('Monthly Revenue by Type')
     plt.xlabel('Month')
-    plt.ylabel('Monthly Revenue (in millions USD)')
+    plt.ylabel('Revenue (USD)')
     plt.legend()
+    plt.grid(True)
 
-    # Plot Cumulative Revenue
-    plt.subplot(2, 2, 3)
-    plt.plot(months, [rev / 1_000_000 for rev in cumulative_revenues], label='Cumulative Revenue')
-    plt.title('Cumulative Revenue Over Time')
+    # Original Cumulative Revenue Plot
+    plt.subplot(3, 2, 3)
+    plt.plot(months, cumulative_revenues)
+    plt.title('Cumulative Revenue')
     plt.xlabel('Month')
-    plt.ylabel('Cumulative Revenue (in millions USD)')
-    plt.legend()
+    plt.ylabel('Revenue (USD)')
+    plt.grid(True)
 
-    # Plot LEAF Price if applicable
-    plt.subplot(2, 2, 4)
-    plt.plot(months, leaf_prices, label='LEAF Price')
+    # LEAF Price Plot
+    plt.subplot(3, 2, 4)
+    plt.plot(months, leaf_prices)
     plt.title('LEAF Price Over Time')
     plt.xlabel('Month')
-    plt.ylabel('LEAF Price (USD)')
-    plt.legend()
+    plt.ylabel('Price (USD)')
+    plt.grid(True)
 
+    # AEGIS Balance History
+    plt.subplot(3, 2, 5)
+    plt.plot(months, aegis_model.leaf_balance_history[:len(months)], label='LEAF Balance')
+    plt.plot(months, aegis_model.usdc_balance_history[:len(months)], label='USDC Balance')
+    plt.title('AEGIS Balance History')
+    plt.xlabel('Month')
+    plt.ylabel('Balance')
+    plt.legend()
+    plt.grid(True)
+
+    plt.tight_layout()
+    plt.show()
+
+    # Now show the new liquidity metrics plots
+    plot_liquidity_metrics(metrics_history)
+
+    # Additional TVL composition analysis
+    plt.figure(figsize=(15, 5))
+    
+    # TVL Composition
+    plt.subplot(1, 2, 1)
+    tvl_types = ['ProtocolLocked', 'Contracted', 'Organic', 'Boosted']
+    bottom = np.zeros(len(months))
+    
+    for tvl_type in tvl_types:
+        values = [sum(c['amount_usd'] for c in history_tracker.get_history(m) 
+                 if c['tvl_type'] == tvl_type and c['active']) 
+                 for m in months]
+        plt.bar(months, values, bottom=bottom, label=tvl_type)
+        bottom += np.array(values)
+    
+    plt.title('TVL Composition Over Time')
+    plt.xlabel('Month')
+    plt.ylabel('TVL (USD)')
+    plt.legend()
+    
+    # TVL Growth Rates
+    plt.subplot(1, 2, 2)
+    growth_rates = [(total_tvl_by_month[i] - total_tvl_by_month[i-1])/total_tvl_by_month[i-1] 
+                   if i > 0 and total_tvl_by_month[i-1] != 0 else 0 
+                   for i in range(len(months))]
+    plt.plot(months, growth_rates)
+    plt.title('Monthly TVL Growth Rate')
+    plt.xlabel('Month')
+    plt.ylabel('Growth Rate')
+    plt.grid(True)
+    
     plt.tight_layout()
     plt.show()
 
