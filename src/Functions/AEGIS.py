@@ -32,7 +32,15 @@ class AEGISModel:
         }
         
     def handle_redemptions(self, month: int, redemption_rate: float) -> Tuple[float, float]:
-        """Process redemptions for the given month"""
+        """Process redemptions for the given month
+        
+        Args:
+            month (int): Current month
+            redemption_rate (float): Rate of redemption (0-1)
+        
+        Returns:
+            Tuple[float, float]: Amount of LEAF and USDC redeemed
+        """
         if month in self.redemption_history:
             raise ValueError(f"Redemptions already processed for month {month}")
             

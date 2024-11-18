@@ -125,3 +125,23 @@ class LEAFPairsModel:
             total_other_within_range += other_amount
         
         return round(total_leaf_within_range, 8), round(total_other_within_range, 8)
+
+    def get_leaf_liquidity(self) -> float:
+        """
+        Get the total amount of LEAF tokens in active liquidity pairs.
+        
+        Returns:
+            float: Total LEAF tokens in active deals
+        """
+        active_deals = self.get_active_deals(self.month)
+        return sum(deal.leaf_balance for deal in active_deals)
+
+    def get_usd_liquidity(self) -> float:
+        """
+        Get the total USD value in active liquidity pairs.
+        
+        Returns:
+            float: Total USD value in active deals
+        """
+        active_deals = self.get_active_deals(self.month)
+        return sum(deal.other_balance for deal in active_deals)

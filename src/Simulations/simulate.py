@@ -1,12 +1,15 @@
 import matplotlib.pyplot as plt  # type: ignore
 from src.Functions.TVL import TVLModel, TVLModelConfig
 from src.Functions.Revenue import RevenueModel, RevenueModelConfig
-from src.Functions.TVLContributions import TVLContribution, TVLContributionHistory
+from src.Functions.TVLContributions import TVLContributionHistory
 from src.Functions.LEAFPairs import LEAFPairsModel, LEAFPairsConfig
 from src.Data.leaf_deal import initialize_deals
 from typing import Dict, List
 from src.Functions.AEGIS import AEGISConfig, AEGISModel
-import numpy as np # type: ignore
+import numpy as np  # type: ignore
+from src.Functions.OAK import OAKDistributionConfig, OAKModel
+from src.Data.oak_deals import get_oak_distribution_deals
+from src.Functions.LeafPrice import LEAFPriceModel, LEAFPriceConfig
 
 def calculate_leaf_price(month: int, total_liquidity: float) -> float:
     """
@@ -56,6 +59,7 @@ def track_liquidity_metrics(
     aegis_model: AEGISModel,
     leaf_pairs_model: LEAFPairsModel
 ) -> Dict:
+    """Track liquidity metrics based on AEGIS and LEAF Pairs models."""
     # Get AEGIS liquidity within 10% of price
     aegis_leaf, aegis_usdc = aegis_model.get_liquidity_within_percentage(10, price)
     
@@ -67,66 +71,154 @@ def track_liquidity_metrics(
     # Get total liquidity across all active deals
     if active_deals:  # Only process if there are active deals
         leaf, other = leaf_pairs_model.get_liquidity_within_percentage(10, price)
-        leaf_pairs_leaf = leaf
-        leaf_pairs_other = other
+        leaf_pairs_leaf += leaf
+        leaf_pairs_other += other
+    
+    total_leaf = aegis_leaf + leaf_pairs_leaf
+    total_usdc = aegis_usdc + leaf_pairs_other
     
     return {
         'month': month,
-        'price': price,
-        'aegis_leaf': aegis_leaf,
-        'aegis_usdc': aegis_usdc,
-        'leaf_pairs_leaf': leaf_pairs_leaf,
-        'leaf_pairs_other': leaf_pairs_other,
-        'aegis_total_usd': (aegis_leaf * price) + aegis_usdc,
-        'leaf_pairs_total_usd': (leaf_pairs_leaf * price) + leaf_pairs_other
+        'total_leaf': total_leaf,
+        'total_usdc': total_usdc
     }
 
 def plot_liquidity_metrics(metrics_history: List[Dict]):
-    months = [m['month'] for m in metrics_history]
-    
-    plt.figure(figsize=(15, 10))
-    
-    # Plot 1: LEAF Liquidity Comparison
-    plt.subplot(2, 2, 1)
-    plt.plot(months, [m['aegis_leaf'] for m in metrics_history], label='AEGIS LEAF')
-    plt.plot(months, [m['leaf_pairs_leaf'] for m in metrics_history], label='LEAFPairs LEAF')
-    plt.title('LEAF Liquidity Within 10% Range')
+    """Plot liquidity metrics over time."""
+    months = [metric['month'] for metric in metrics_history]
+    total_leaf = [metric['total_leaf'] for metric in metrics_history]
+    total_usdc = [metric['total_usdc'] for metric in metrics_history]
+
+    plt.figure(figsize=(12, 6))
+    plt.plot(months, total_leaf, label='Total LEAF Liquidity')
+    plt.plot(months, total_usdc, label='Total USDC Liquidity')
+    plt.title('Liquidity Metrics Over Time')
     plt.xlabel('Month')
-    plt.ylabel('LEAF Amount')
+    plt.ylabel('Liquidity')
     plt.legend()
     plt.grid(True)
-    
-    # Plot 2: Stablecoin Liquidity Comparison
-    plt.subplot(2, 2, 2)
-    plt.plot(months, [m['aegis_usdc'] for m in metrics_history], label='AEGIS USDC')
-    plt.plot(months, [m['leaf_pairs_other'] for m in metrics_history], label='LEAFPairs Other')
-    plt.title('Stablecoin Liquidity Within 10% Range')
-    plt.xlabel('Month')
-    plt.ylabel('USD Amount')
-    plt.legend()
-    plt.grid(True)
-    
-    # Plot 3: Total USD Value Comparison
-    plt.subplot(2, 2, 3)
-    plt.plot(months, [m['aegis_total_usd'] for m in metrics_history], label='AEGIS Total')
-    plt.plot(months, [m['leaf_pairs_total_usd'] for m in metrics_history], label='LEAFPairs Total')
-    plt.title('Total USD Value Within 10% Range')
-    plt.xlabel('Month')
-    plt.ylabel('USD Value')
-    plt.legend()
-    plt.grid(True)
-    
-    # Plot 4: Combined Liquidity Ratio
-    plt.subplot(2, 2, 4)
-    ratios = [(m['aegis_total_usd'] + m['leaf_pairs_total_usd']) / (m['aegis_total_usd'] or 1) for m in metrics_history]
-    plt.plot(months, ratios)
-    plt.title('Combined/AEGIS Liquidity Ratio')
-    plt.xlabel('Month')
-    plt.ylabel('Ratio')
-    plt.grid(True)
-    
     plt.tight_layout()
     plt.show()
+
+def calculate_current_irr(month: int, total_tvl: float, cumulative_revenue: float) -> float:
+    """
+    Calculate the current IRR based on total TVL and cumulative revenue.
+    Placeholder for actual IRR calculation logic.
+    """
+    # Implement your IRR calculation logic here.
+    # For demonstration, we'll use a simple formula.
+    # This should be replaced with a proper IRR computation.
+    if total_tvl == 0:
+        return 0.0
+    irr = (cumulative_revenue / total_tvl) * 100  # Simple proportional IRR
+    return irr
+
+def plot_oak_distributions(oak_states: List[Dict]):
+    """Plot OAK distribution and redemption data."""
+    months = [state['month'] for state in oak_states]
+    remaining_supply = [state['remaining_oak_supply'] for state in oak_states]
+
+    # Calculate total distributed each month
+    total_distributed = []
+    total_redeemed = []
+    cumulative_redeemed = []
+    cumulative_redeemed_amount = 0.0
+    for state in oak_states:
+        month = state['month']
+        redemptions = state['redemption_history'].get(month, {})
+        total_redeemed_amount = sum(redemptions.values())
+        total_redeemed.append(total_redeemed_amount)
+        cumulative_redeemed_amount += total_redeemed_amount
+        cumulative_redeemed.append(cumulative_redeemed_amount)
+
+    # Plot remaining OAK supply
+    plt.figure(figsize=(12, 6))
+    plt.plot(months, remaining_supply, label='Remaining OAK Supply', color='blue')
+    plt.xlabel('Month')
+    plt.ylabel('OAK Tokens')
+    plt.title('Remaining OAK Supply Over Time')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+    # Plot total redeemed each month
+    plt.figure(figsize=(12, 6))
+    plt.bar(months, total_redeemed, label='OAK Redeemed Each Month', color='green')
+    plt.xlabel('Month')
+    plt.ylabel('OAK Tokens Redeemed')
+    plt.title('OAK Redemptions Over Time')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+    # Plot cumulative redeemed OAK
+    plt.figure(figsize=(12, 6))
+    plt.plot(months, cumulative_redeemed, label='Cumulative OAK Redeemed', color='red')
+    plt.xlabel('Month')
+    plt.ylabel('Cumulative OAK Tokens Redeemed')
+    plt.title('Cumulative OAK Redemptions Over Time')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+    # Optionally, plot redemptions by counterparty
+    counterparties = set()
+    for state in oak_states:
+        counterparties.update(state['redemption_history'].get(state['month'], {}).keys())
+    counterparties = sorted(counterparties)
+
+    plt.figure(figsize=(12, 6))
+    for counterparty in counterparties:
+        redemption_values = []
+        for state in oak_states:
+            month = state['month']
+            redemptions = state['redemption_history'].get(month, {})
+            redemption_values.append(redemptions.get(counterparty, 0.0))
+        plt.plot(months, redemption_values, label=f'OAK Redeemed by {counterparty}')
+    plt.xlabel('Month')
+    plt.ylabel('OAK Tokens Redeemed')
+    plt.title('OAK Redemptions by Counterparty Over Time')
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+def simulate_months(months: int):
+    """
+    Placeholder function for simulating OAK distributions and redemptions.
+    """
+    # This function can be expanded based on specific simulation requirements.
+    pass  # Implement simulation logic as needed
+
+def estimate_leaf_price(
+    leaf_price_model: LEAFPriceModel,
+    current_price: float,
+    leaf_liquidity: float,
+    usd_liquidity: float,
+    trade_amount_usd: float = 0.0
+) -> float:
+    """
+    Helper function to estimate LEAF price using the LEAFPriceModel.
+    
+    Args:
+        leaf_price_model: Initialized LEAFPriceModel instance
+        current_price: Current LEAF token price
+        leaf_liquidity: Amount of LEAF tokens available within 10% of current price
+        usd_liquidity: USD value of paired liquidity within 10% of current price
+        trade_amount_usd: USD value of LEAF to be bought (positive) or sold (negative)
+    
+    Returns:
+        float: Estimated LEAF price
+    """
+    return leaf_price_model.get_leaf_price(
+        current_price=current_price,
+        leaf_liquidity=leaf_liquidity,
+        usd_liquidity=usd_liquidity,
+        trade_amount_usd=trade_amount_usd
+    )
 
 def main():
     # Initialize configuration
@@ -139,7 +231,7 @@ def main():
         'max_months': 60
     }
 
-    # Define activation months for different features
+    # Activation months for different features
     activation_months = {
         'LEAF_PAIRS_START_MONTH': 1,
         'BOOST_START_MONTH': 6,
@@ -164,6 +256,15 @@ def main():
     )
     aegis_model = AEGISModel(aegis_config)
 
+    # Initialize OAK model
+    oak_deals = get_oak_distribution_deals()
+    oak_config = OAKDistributionConfig(
+        total_oak_supply=700_000,
+        deals=oak_deals
+    )
+    oak_model = OAKModel(oak_config)
+    oak_states = []  # Initialize oak_states list
+
     # Initialize history arrays with correct length
     aegis_model.leaf_balance_history = [aegis_config.initial_leaf_balance] * config['max_months']
     aegis_model.usdc_balance_history = [aegis_config.initial_usdc_balance] * config['max_months']
@@ -177,7 +278,7 @@ def main():
     total_tvl_by_month = []
     revenue_by_month = []
     cumulative_revenues = []
-    leaf_prices = []
+    leaf_prices = [1.0] * config['max_months']  # Initialize with correct length
     metrics_history = []
     history_tracker = TVLContributionHistory()
 
@@ -185,12 +286,23 @@ def main():
     print("Month          Protocol     Contracted        Organic        Boosted       Total Rev (M)       Cumulative Rev (M)")
     print("-" * 113)
 
+    # Initialize LEAF price model
+    leaf_price_config = LEAFPriceConfig(
+        min_price=0.01,
+        max_price=100.0,
+        price_impact_threshold=0.10
+    )
+    leaf_price_model = LEAFPriceModel(leaf_price_config)
+    current_leaf_price = 1.0  # Starting price
+
     # Simulation loop
     for month in months:
-        # Record state before updates
+        print(f"\n--- Month {month + 1} ---")
+        
+        # Record state before updates - use contributions directly
         history_tracker.record_state(month, tvl_model.contributions)
         
-        # Update TVL and calculate metrics
+        # Update TVL
         tvl_model.step()
         total_tvl = tvl_model.get_total_tvl()
         total_tvl_by_month.append(total_tvl)
@@ -199,33 +311,53 @@ def main():
         monthly_revenue = revenue_model.calculate_revenue(month)
         revenue_by_month.append(monthly_revenue)
         cumulative_revenues.append(revenue_model.cumulative_revenue)
-
-        # Calculate LEAF price for this month
-        leaf_price = calculate_leaf_price(month, total_tvl)
-        leaf_prices.append(leaf_price)
-
-        # Update AEGIS model if active
-        if month >= activation_months['AEGIS_START_MONTH']:
-            aegis_model.handle_redemptions(month, 0.02)  # 2% monthly redemption
-            aegis_model.step(month)
+        
+        # Update OAK if active
+        if month >= activation_months['OAK_START_MONTH']:
+            current_irr = calculate_current_irr(month, total_tvl, revenue_model.cumulative_revenue)
+            redemption_amount, supply_before, supply_after = oak_model.step(
+                current_month=month,
+                current_irr=current_irr
+            )
+            oak_states.append(oak_model.get_state())
             
-        # Always update history arrays at the correct index
-        aegis_model.leaf_balance_history[month] = aegis_model.leaf_balance
-        aegis_model.usdc_balance_history[month] = aegis_model.usdc_balance
-        aegis_model.leaf_price_history[month] = leaf_price
-
+            if redemption_amount > 0:
+                print(f"OAK Redemptions: {redemption_amount:,.2f} (Supply: {supply_before:,.2f} -> {supply_after:,.2f})")
+        
+        # Update AEGIS if active
+        if month >= activation_months['AEGIS_START_MONTH']:
+            # Calculate redemption rate based on OAK redemptions
+            oak_redemption_amount = oak_model.get_monthly_redemption_amount(month)
+            redemption_rate = oak_redemption_amount / oak_config.total_oak_supply if oak_config.total_oak_supply > 0 else 0
+            
+            # Handle redemptions with calculated rate
+            aegis_model.handle_redemptions(month, redemption_rate)
+            aegis_model.step(month)
+        
         # Update LEAF pairs if active
         if month >= activation_months['LEAF_PAIRS_START_MONTH']:
-            leaf_pairs_model.update_deals(month, leaf_price)
-
-        # Track liquidity metrics
-        metrics = track_liquidity_metrics(month, leaf_price, aegis_model, leaf_pairs_model)
+            leaf_pairs_model.update_deals(month, current_leaf_price)
+        
+        # Update AEGIS history
+        aegis_model.leaf_balance_history[month] = aegis_model.leaf_balance
+        aegis_model.usdc_balance_history[month] = aegis_model.usdc_balance
+        
+        # Track metrics
+        metrics = track_liquidity_metrics(month, current_leaf_price, aegis_model, leaf_pairs_model)
         metrics_history.append(metrics)
-
+        
+        # Track LEAF price
+        leaf_prices[month] = current_leaf_price
+        
         # Print monthly summary
         print_monthly_summary(month, monthly_revenue, revenue_model.cumulative_revenue)
 
+        if month % 12 == 0:  # Log every 12 months
+            print(f"LEAF Price at month {month}: ${current_leaf_price:.4f}")
+
     # After simulation loop, create all visualizations
+
+    # Plotting TVL Over Time
     plt.figure(figsize=(15, 10))
     
     # Original TVL Plot
@@ -282,7 +414,7 @@ def main():
     plt.tight_layout()
     plt.show()
 
-    # Now show the new liquidity metrics plots
+    # Show the new liquidity metrics plots
     plot_liquidity_metrics(metrics_history)
 
     # Additional TVL composition analysis
@@ -318,6 +450,22 @@ def main():
     
     plt.tight_layout()
     plt.show()
+
+    # Create OAK distribution subplot
+    plot_oak_distributions(oak_states)
+
+def calculate_current_irr(month: int, total_tvl: float, cumulative_revenue: float) -> float:
+    """
+    Calculate the current IRR based on total TVL and cumulative revenue.
+    Placeholder for actual IRR calculation logic.
+    """
+    # Implement your IRR calculation logic here.
+    # For demonstration, we'll use a simple formula.
+    # This should be replaced with a proper IRR computation.
+    if total_tvl == 0:
+        return 0.0
+    irr = (cumulative_revenue / total_tvl) * 100  # Simple proportional IRR
+    return irr
 
 if __name__ == "__main__":
     main() 
