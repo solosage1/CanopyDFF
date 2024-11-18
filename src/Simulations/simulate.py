@@ -100,89 +100,32 @@ def plot_liquidity_metrics(metrics_history: List[Dict]):
     plt.tight_layout()
     plt.show()
 
-def calculate_current_irr(month: int, total_tvl: float, cumulative_revenue: float) -> float:
-    """
-    Calculate the current IRR based on total TVL and cumulative revenue.
-    Placeholder for actual IRR calculation logic.
-    """
-    # Implement your IRR calculation logic here.
-    # For demonstration, we'll use a simple formula.
-    # This should be replaced with a proper IRR computation.
-    if total_tvl == 0:
-        return 0.0
-    irr = (cumulative_revenue / total_tvl) * 100  # Simple proportional IRR
-    return irr
-
 def plot_oak_distributions(oak_states: List[Dict]):
-    """Plot OAK distribution and redemption data."""
-    months = [state['month'] for state in oak_states]
-    remaining_supply = [state['remaining_oak_supply'] for state in oak_states]
-
-    # Calculate total distributed each month
-    total_distributed = []
-    total_redeemed = []
-    cumulative_redeemed = []
-    cumulative_redeemed_amount = 0.0
-    for state in oak_states:
-        month = state['month']
-        redemptions = state['redemption_history'].get(month, {})
-        total_redeemed_amount = sum(redemptions.values())
-        total_redeemed.append(total_redeemed_amount)
-        cumulative_redeemed_amount += total_redeemed_amount
-        cumulative_redeemed.append(cumulative_redeemed_amount)
-
-    # Plot remaining OAK supply
-    plt.figure(figsize=(12, 6))
-    plt.plot(months, remaining_supply, label='Remaining OAK Supply', color='blue')
+    """Plot OAK distribution metrics."""
+    plt.figure(figsize=(15, 10))
+    
+    # OAK Supply Over Time
+    plt.subplot(2, 2, 1)
+    months = list(range(len(oak_states)))
+    supplies = [state['remaining_oak_supply'] for state in oak_states]
+    plt.plot(months, supplies)
+    plt.title('Remaining OAK Supply')
     plt.xlabel('Month')
     plt.ylabel('OAK Tokens')
-    plt.title('Remaining OAK Supply Over Time')
-    plt.legend()
     plt.grid(True)
-    plt.tight_layout()
-    plt.show()
-
-    # Plot total redeemed each month
-    plt.figure(figsize=(12, 6))
-    plt.bar(months, total_redeemed, label='OAK Redeemed Each Month', color='green')
+    
+    # Monthly Redemptions
+    plt.subplot(2, 2, 2)
+    monthly_redemptions = []
+    for month in months:
+        total = sum(oak_states[month]['redemption_history'].get(month, {}).values())
+        monthly_redemptions.append(total)
+    plt.bar(months, monthly_redemptions)
+    plt.title('Monthly OAK Redemptions')
     plt.xlabel('Month')
     plt.ylabel('OAK Tokens Redeemed')
-    plt.title('OAK Redemptions Over Time')
-    plt.legend()
     plt.grid(True)
-    plt.tight_layout()
-    plt.show()
-
-    # Plot cumulative redeemed OAK
-    plt.figure(figsize=(12, 6))
-    plt.plot(months, cumulative_redeemed, label='Cumulative OAK Redeemed', color='red')
-    plt.xlabel('Month')
-    plt.ylabel('Cumulative OAK Tokens Redeemed')
-    plt.title('Cumulative OAK Redemptions Over Time')
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    plt.show()
-
-    # Optionally, plot redemptions by counterparty
-    counterparties = set()
-    for state in oak_states:
-        counterparties.update(state['redemption_history'].get(state['month'], {}).keys())
-    counterparties = sorted(counterparties)
-
-    plt.figure(figsize=(12, 6))
-    for counterparty in counterparties:
-        redemption_values = []
-        for state in oak_states:
-            month = state['month']
-            redemptions = state['redemption_history'].get(month, {})
-            redemption_values.append(redemptions.get(counterparty, 0.0))
-        plt.plot(months, redemption_values, label=f'OAK Redeemed by {counterparty}')
-    plt.xlabel('Month')
-    plt.ylabel('OAK Tokens Redeemed')
-    plt.title('OAK Redemptions by Counterparty Over Time')
-    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
-    plt.grid(True)
+    
     plt.tight_layout()
     plt.show()
 
@@ -256,14 +199,15 @@ def main():
     )
     aegis_model = AEGISModel(aegis_config)
 
-    # Initialize OAK model
-    oak_deals = get_oak_distribution_deals()
+    # Initialize OAK model with redemption period parameters
     oak_config = OAKDistributionConfig(
-        total_oak_supply=700_000,
-        deals=oak_deals
+        total_oak_supply=500_000,
+        redemption_start_month=12,  # When redemptions can begin
+        redemption_end_month=48,    # When max redemptions are allowed
+        deals=get_oak_distribution_deals()
     )
     oak_model = OAKModel(oak_config)
-    oak_states = []  # Initialize oak_states list
+    oak_states = []
 
     # Initialize history arrays with correct length
     aegis_model.leaf_balance_history = [aegis_config.initial_leaf_balance] * config['max_months']
@@ -314,15 +258,33 @@ def main():
         
         # Update OAK if active
         if month >= activation_months['OAK_START_MONTH']:
-            current_irr = calculate_current_irr(month, total_tvl, revenue_model.cumulative_revenue)
-            redemption_amount, supply_before, supply_after = oak_model.step(
+            # Get current AEGIS holdings and LEAF price
+            aegis_usdc = aegis_model.usdc_balance_history[month]
+            aegis_leaf = aegis_model.leaf_balance_history[month]
+            current_leaf_price = leaf_price_model.get_current_price(month)
+            
+            # Process OAK redemptions with updated IRR calculation
+            oak_redemption, supply_before, supply_after, usdc_redemption, leaf_redemption = oak_model.step(
                 current_month=month,
-                current_irr=current_irr
+                aegis_usdc=aegis_usdc,
+                aegis_leaf=aegis_leaf,
+                current_leaf_price=current_leaf_price
             )
+            
+            # Update AEGIS balances based on redemptions
+            aegis_model.update_balances(
+                usdc_delta=-usdc_redemption,
+                leaf_delta=-leaf_redemption
+            )
+            
             oak_states.append(oak_model.get_state())
             
-            if redemption_amount > 0:
-                print(f"OAK Redemptions: {redemption_amount:,.2f} (Supply: {supply_before:,.2f} -> {supply_after:,.2f})")
+            if oak_redemption > 0:
+                print(f"OAK Redemptions: {oak_redemption:,.2f} OAK")
+                print(f"USDC Redeemed: {usdc_redemption:,.2f}")
+                print(f"LEAF Redeemed: {leaf_redemption:,.2f}")
+                print(f"LEAF Price: ${current_leaf_price:.2f}")
+                print(f"Total Value Redeemed: ${(usdc_redemption + leaf_redemption * current_leaf_price):,.2f}")
         
         # Update AEGIS if active
         if month >= activation_months['AEGIS_START_MONTH']:
@@ -453,19 +415,6 @@ def main():
 
     # Create OAK distribution subplot
     plot_oak_distributions(oak_states)
-
-def calculate_current_irr(month: int, total_tvl: float, cumulative_revenue: float) -> float:
-    """
-    Calculate the current IRR based on total TVL and cumulative revenue.
-    Placeholder for actual IRR calculation logic.
-    """
-    # Implement your IRR calculation logic here.
-    # For demonstration, we'll use a simple formula.
-    # This should be replaced with a proper IRR computation.
-    if total_tvl == 0:
-        return 0.0
-    irr = (cumulative_revenue / total_tvl) * 100  # Simple proportional IRR
-    return irr
 
 if __name__ == "__main__":
     main() 
