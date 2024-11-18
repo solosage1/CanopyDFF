@@ -1,243 +1,188 @@
 import unittest
 import logging
-from src.Functions.LeafPrice import LEAFPriceModel, LEAFPriceConfig
+from src.Functions.LeafPrice import LEAFPriceConfig, LEAFPriceModel
 
 class TestLEAFPrice(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        """Set up logging configuration for the test class"""
-        # Configure logging
-        logging.basicConfig(
-            level=logging.DEBUG,
-            format='%(asctime)s - %(levelname)s - %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S'
-        )
-        cls.logger = logging.getLogger(__name__)
-
     def setUp(self):
-        """Set up test fixtures before each test method"""
+        # Configure logging for the test
+        logging.basicConfig(level=logging.DEBUG)
+        self.logger = logging.getLogger('TestLEAFPrice')
+        
+        # Configuration with no fixed parameters inside the class
         self.config = LEAFPriceConfig(
             min_price=0.01,
             max_price=100.0,
-            price_impact_threshold=0.10
+            price_impact_threshold=0.10  # 10% maximum price impact
         )
         self.model = LEAFPriceModel(self.config)
-        self.logger.info("\n=== Starting New Test ===")
-
-    def test_basic_price_calculation(self):
-        """Test basic price calculation with no trade impact"""
-        self.logger.info("Testing basic price calculation")
-        
-        # Test parameters
-        current_price = 1.0
-        leaf_liquidity = 100000
-        usd_liquidity = 100000
-        trade_amount = 0
-        
-        self.logger.debug(f"Input parameters:")
-        self.logger.debug(f"Current price: ${current_price}")
-        self.logger.debug(f"LEAF liquidity: {leaf_liquidity} LEAF")
-        self.logger.debug(f"USD liquidity: ${usd_liquidity}")
-        self.logger.debug(f"Trade amount: ${trade_amount}")
-
-        new_price = self.model.get_leaf_price(
-            month=1,
-            current_price=current_price,
-            leaf_liquidity=leaf_liquidity,
-            usd_liquidity=usd_liquidity,
-            trade_amount_usd=trade_amount
-        )
-        
-        self.logger.info(f"New price calculated: ${new_price}")
-        self.assertEqual(new_price, current_price)
+        self.model.initialize_price(initial_price=1.0)
 
     def test_buy_price_impact(self):
-        """Test price impact from buying LEAF"""
+        """Test price impact from buying LEAF."""
         self.logger.info("Testing buy price impact")
         
-        # Test parameters
-        current_price = 1.0
-        leaf_liquidity = 100000
-        usd_liquidity = 100000
-        trade_amount = 10000  # Buy $10k worth of LEAF
+        current_price = self.model.get_current_price(month=1)
+        leaf_liquidity = 100_000
+        usd_liquidity = 100_000
+        trade_amount_usd = 10_000  # Buying $10,000 worth of LEAF
         
-        self.logger.debug(f"Input parameters:")
-        self.logger.debug(f"Current price: ${current_price}")
-        self.logger.debug(f"LEAF liquidity: {leaf_liquidity} LEAF")
-        self.logger.debug(f"USD liquidity: ${usd_liquidity}")
-        self.logger.debug(f"Buy amount: ${trade_amount}")
-
-        total_liquidity = usd_liquidity + (leaf_liquidity * current_price)
-        self.logger.debug(f"Total liquidity: ${total_liquidity}")
-        expected_price_impact = trade_amount / total_liquidity
-        self.logger.debug(f"Expected price impact: {expected_price_impact:.2%}")
-
-        new_price = self.model.get_leaf_price(
+        new_price = self.model.update_price(
             month=1,
-            current_price=current_price,
             leaf_liquidity=leaf_liquidity,
             usd_liquidity=usd_liquidity,
-            trade_amount_usd=trade_amount
+            trade_amount_usd=trade_amount_usd
         )
         
-        actual_price_impact = (new_price - current_price) / current_price
-        self.logger.info(f"New price calculated: ${new_price}")
-        self.logger.info(f"Actual price impact: {actual_price_impact:.2%}")
+        expected_price_impact = trade_amount_usd / (usd_liquidity + leaf_liquidity * current_price)
+        expected_new_price = current_price + current_price * expected_price_impact
         
-        self.assertGreater(new_price, current_price)
-        self.assertLess(actual_price_impact, self.config.price_impact_threshold)
+        self.logger.debug(f"New price after buy: {new_price}")
+        self.assertAlmostEqual(new_price, expected_new_price, places=6)
 
     def test_sell_price_impact(self):
-        """Test price impact from selling LEAF"""
+        """Test price impact from selling LEAF."""
         self.logger.info("Testing sell price impact")
         
-        # Test parameters
-        current_price = 1.0
-        leaf_liquidity = 100000
-        usd_liquidity = 100000
-        trade_amount = -10000  # Sell $10k worth of LEAF
+        current_price = self.model.get_current_price(month=1)
+        leaf_liquidity = 100_000
+        usd_liquidity = 100_000
+        trade_amount_usd = -10_000  # Selling $10,000 worth of LEAF
         
-        self.logger.debug(f"Input parameters:")
-        self.logger.debug(f"Current price: ${current_price}")
-        self.logger.debug(f"LEAF liquidity: {leaf_liquidity} LEAF")
-        self.logger.debug(f"USD liquidity: ${usd_liquidity}")
-        self.logger.debug(f"Sell amount: ${-trade_amount}")
-
-        total_liquidity = usd_liquidity + (leaf_liquidity * current_price)
-        self.logger.debug(f"Total liquidity: ${total_liquidity}")
-        expected_price_impact = trade_amount / total_liquidity
-        self.logger.debug(f"Expected price impact: {expected_price_impact:.2%}")
-
-        new_price = self.model.get_leaf_price(
+        new_price = self.model.update_price(
             month=1,
-            current_price=current_price,
             leaf_liquidity=leaf_liquidity,
             usd_liquidity=usd_liquidity,
-            trade_amount_usd=trade_amount
+            trade_amount_usd=trade_amount_usd
         )
         
-        actual_price_impact = (new_price - current_price) / current_price
-        self.logger.info(f"New price calculated: ${new_price}")
-        self.logger.info(f"Actual price impact: {actual_price_impact:.2%}")
+        expected_price_impact = trade_amount_usd / (usd_liquidity + leaf_liquidity * current_price)
+        expected_new_price = current_price + current_price * expected_price_impact
         
-        self.assertLess(new_price, current_price)
-        self.assertGreater(actual_price_impact, -self.config.price_impact_threshold)
+        self.logger.debug(f"New price after sell: {new_price}")
+        self.assertAlmostEqual(new_price, expected_new_price, places=6)
 
-    def test_max_trade_size(self):
-        """Test maximum trade size calculation"""
-        self.logger.info("Testing maximum trade size calculation")
+    def test_multiple_updates_in_month(self):
+        """Test multiple price updates within the same month."""
+        self.logger.info("Testing multiple price updates in a month")
         
-        # Test parameters
-        current_price = 1.0
-        leaf_liquidity = 100000
-        usd_liquidity = 100000
+        month = 1
+        self.model.initialize_price(initial_price=1.0)
+        leaf_liquidity = 100_000
+        usd_liquidity = 100_000
         
-        # Get maximum trade sizes
-        max_buy = self.model.estimate_max_trade_size(
-            current_price=current_price,
+        # First trade
+        trade_amount_usd = 5_000  # Buy order
+        new_price = self.model.update_price(
+            month=month,
             leaf_liquidity=leaf_liquidity,
             usd_liquidity=usd_liquidity,
-            is_buy=True
-        )
-        max_sell = self.model.estimate_max_trade_size(
-            current_price=current_price,
-            leaf_liquidity=leaf_liquidity,
-            usd_liquidity=usd_liquidity,
-            is_buy=False
+            trade_amount_usd=trade_amount_usd
         )
         
-        self.logger.info(f"Maximum buy size: ${max_buy:,.2f}")
-        self.logger.info(f"Maximum sell size: ${max_sell:,.2f}")
-        
-        # Test buy impact
-        new_price_buy = self.model.get_leaf_price(
-            month=1,
-            current_price=current_price,
+        # Second trade
+        trade_amount_usd = -2_000  # Sell order
+        new_price = self.model.update_price(
+            month=month,
             leaf_liquidity=leaf_liquidity,
             usd_liquidity=usd_liquidity,
-            trade_amount_usd=max_buy * 0.99  # Use slightly less than max to avoid threshold
+            trade_amount_usd=trade_amount_usd
         )
-        buy_impact = (new_price_buy - current_price) / current_price
-        self.logger.debug(f"Price impact at max buy: {buy_impact:.2%}")
-        self.assertAlmostEqual(buy_impact, self.config.price_impact_threshold * 0.99, places=4)
         
-        # Test sell impact
-        new_price_sell = self.model.get_leaf_price(
-            month=1,
-            current_price=current_price,
+        # Final trade of the month
+        trade_amount_usd = 3_000  # Buy order
+        new_price = self.model.update_price(
+            month=month,
             leaf_liquidity=leaf_liquidity,
             usd_liquidity=usd_liquidity,
-            trade_amount_usd=max_sell * 0.99  # Use slightly less than max to avoid threshold
+            trade_amount_usd=trade_amount_usd
         )
-        sell_impact = (new_price_sell - current_price) / current_price
-        self.logger.debug(f"Price impact at max sell: {sell_impact:.2%}")
-        self.assertAlmostEqual(sell_impact, -self.config.price_impact_threshold * 0.99, places=4)
+        
+        # Finalize month's price
+        self.model.finalize_month_price(month)
+        
+        # Ensure no further updates are allowed
+        with self.assertRaises(ValueError):
+            self.model.update_price(
+                month=month,
+                leaf_liquidity=leaf_liquidity,
+                usd_liquidity=usd_liquidity,
+                trade_amount_usd=1_000
+            )
 
     def test_price_bounds(self):
-        """Test price bounds enforcement"""
+        """Test price bounds enforcement."""
         self.logger.info("Testing price bounds enforcement")
         
-        # Test parameters
-        current_price = 1.0
-        leaf_liquidity = 10000
-        usd_liquidity = 10000
+        current_price = self.model.get_current_price(month=1)
+        leaf_liquidity = 10_000
+        usd_liquidity = 10_000
         
-        # Test actual min/max bounds
-        min_price = self.config.min_price
-        max_price = self.config.max_price
-        
-        # Test near bounds
-        near_min_test = min_price * 1.1
-        near_max_test = max_price * 0.9
-
-        # Test upper bound
-        large_buy = usd_liquidity * 2  # Should hit max price
-        self.logger.debug(f"Testing large buy: ${large_buy:,.2f}")
-        
-        new_price = self.model.get_leaf_price(
-            month=1,
-            current_price=current_price,
-            leaf_liquidity=leaf_liquidity,
-            usd_liquidity=usd_liquidity,
-            trade_amount_usd=large_buy
-        )
-        self.logger.info(f"Price after large buy: ${new_price}")
-        self.assertLessEqual(new_price, self.config.max_price)
-        
-        # Test lower bound
-        large_sell = -usd_liquidity * 2  # Should hit min price
-        self.logger.debug(f"Testing large sell: ${-large_sell:,.2f}")
-        
-        new_price = self.model.get_leaf_price(
-            month=1,
-            current_price=current_price,
-            leaf_liquidity=leaf_liquidity,
-            usd_liquidity=usd_liquidity,
-            trade_amount_usd=large_sell
-        )
-        self.logger.info(f"Price after large sell: ${new_price}")
-        self.assertGreaterEqual(new_price, self.config.min_price)
-
-    def test_error_handling(self):
-        """Test invalid inputs"""
-        self.logger.info("Testing error handling")
-        
-        # Test zero liquidity
+        # Large buy to exceed max price
+        trade_amount_usd = usd_liquidity * 10  # Large enough to push price above max
         with self.assertRaises(ValueError):
-            self.model.calculate_price_impact(
-                current_price=1.0,
-                leaf_liquidity=0,  # Invalid value
-                usd_liquidity=100000,
-                trade_amount_usd=1000
+            self.model.update_price(
+                month=1,
+                leaf_liquidity=leaf_liquidity,
+                usd_liquidity=usd_liquidity,
+                trade_amount_usd=trade_amount_usd
             )
-        
-        # Test zero USD liquidity
+
+        # Large sell to drop below min price
+        trade_amount_usd = -usd_liquidity * 10  # Large enough to push price below min
         with self.assertRaises(ValueError):
-            self.model.calculate_price_impact(
-                current_price=1.0,
-                leaf_liquidity=100000,
-                usd_liquidity=0,  # Invalid value
-                trade_amount_usd=1000
+            self.model.update_price(
+                month=1,
+                leaf_liquidity=leaf_liquidity,
+                usd_liquidity=usd_liquidity,
+                trade_amount_usd=trade_amount_usd
+            )
+
+    def test_price_impact_threshold(self):
+        """Test that trades exceeding the price impact threshold are rejected."""
+        self.logger.info("Testing price impact threshold enforcement")
+        
+        current_price = self.model.get_current_price(month=1)
+        leaf_liquidity = 100_000
+        usd_liquidity = 100_000
+        
+        # Trade that exceeds price impact threshold
+        trade_amount_usd = (usd_liquidity + leaf_liquidity * current_price) * (self.config.price_impact_threshold + 0.01)
+        
+        with self.assertRaises(ValueError):
+            self.model.update_price(
+                month=1,
+                leaf_liquidity=leaf_liquidity,
+                usd_liquidity=usd_liquidity,
+                trade_amount_usd=trade_amount_usd
+            )
+
+    def test_finalize_month_price(self):
+        """Test that price cannot be updated after month is finalized."""
+        self.logger.info("Testing month price finalization")
+
+        month = 1
+        leaf_liquidity = 100_000
+        usd_liquidity = 100_000
+        trade_amount_usd = 5_000  # Buy order
+
+        # Update price once
+        self.model.update_price(
+            month=month,
+            leaf_liquidity=leaf_liquidity,
+            usd_liquidity=usd_liquidity,
+            trade_amount_usd=trade_amount_usd
+        )
+
+        # Finalize the month's price
+        self.model.finalize_month_price(month)
+
+        # Attempt to update price after finalization
+        with self.assertRaises(ValueError):
+            self.model.update_price(
+                month=month,
+                leaf_liquidity=leaf_liquidity,
+                usd_liquidity=usd_liquidity,
+                trade_amount_usd=1_000
             )
 
 if __name__ == '__main__':

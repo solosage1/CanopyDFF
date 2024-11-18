@@ -14,13 +14,14 @@
    - [LEAF Pairs Model](#leaf-pairs-model)
    - [AEGIS Model](#aegis-model)
    - [OAK Distribution Model](#oak-distribution-model)
-4. [Usage](#usage)
+4. [Simulation Activation Dates](#simulation-activation-dates)
+5. [Usage](#usage)
    - [Running Simulations](#running-simulations)
    - [Modifying Parameters](#modifying-parameters)
-5. [Documentation](#documentation)
-6. [Getting Started](#getting-started)
-7. [Contributing](#contributing)
-8. [License](#license)
+6. [Documentation](#documentation)
+7. [Getting Started](#getting-started)
+8. [Contributing](#contributing)
+9. [License](#license)
 
 ---
 
@@ -81,89 +82,121 @@ The TVL Model (`src/Functions/TVL.py`) projects Total Value Locked growth for bo
   - Accounts for competitive pressure through a decay rate.
 
 - **Configuration Flexibility**:
-
-    ```python
-    TVLModelConfig(
-        initial_move_tvl=800_000_000,    # $800M
-        initial_canopy_tvl=350_000_000,  # $350M
-        move_growth_rates=[1.5, 1, 0.75, 0.5, 0.4],
-        min_market_share=0.10,
-        market_share_decay_rate=0.02,
-        initial_boost_share=0.10,
-        boost_growth_rate=1.0
-    )
-    ```
+  - Allows adjustments to initial TVL, growth rates, market share parameters, and projection duration.
 
 ### Revenue Model
 
-The Revenue Model (`src/Functions/Revenue.py`) projects revenue based on the composition of TVL. Key features include:
+The Revenue Model (`src/Functions/Revenue.py`) calculates projected revenues based on the TVL composition. It considers different revenue streams such as protocol-locked, contracted, organic, and boosted TVL.
 
-- **Revenue Calculations**:
-  - Differentiates between volatile and stable revenue streams.
-  - Adjusts revenue rates over time based on growth parameters.
+- **Revenue Streams**:
+  - **Protocol-Locked**: Revenue from locked protocols.
+  - **Contracted**: Revenue from contractual agreements.
+  - **Organic**: Revenue from organic growth.
+  - **Boosted**: Additional revenue from boosted incentives.
 
-- **Dynamic Share Management**:
-  - Adjusts the volatile share of TVL dynamically to reach target shares over a specified duration.
-
-- **Configuration Flexibility**:
-
-    ```python
-    RevenueModelConfig(
-        initial_volatile_share=0.10,     # 10% volatile at start
-        target_volatile_share=0.20,      # Target 20% volatile share
-        volatile_share_growth=0.02,      # Growth rate for volatile TVL share
-        initial_volatile_rate=0.05,      # 5% annual revenue rate for volatile
-        target_volatile_rate=0.02,       # 2% annual revenue rate for volatile
-        initial_stable_rate=0.01,        # 1% annual revenue rate for stable
-        target_stable_rate=0.005,        # 0.5% annual revenue rate for stable
-        share_growth_duration=24         # Duration over which shares and rates change (in months)
-    )
-    ```
+- **Features**:
+  - Configurable revenue rates for each TVL type.
+  - Supports dynamic adjustments over time.
 
 ### LEAF Pairs Model
 
-The LEAF Pairs Model (`src/Functions/LEAFPairs.py`) manages liquidity pairs involving LEAF tokens. Key features include:
+The LEAF Pairs Model (`src/Functions/LEAFPairs.py`) manages liquidity pairs involving LEAF tokens.
 
-- **Deal Management**:
-  - Initializes and manages multiple LEAF pairing deals.
-  - Tracks LEAF and counter asset balances over time.
+- **Liquidity Management**:
+  - Handles the creation and dissolution of LEAF-based liquidity pools.
+  - Tracks liquidity contributions and withdrawals.
 
-- **Liquidity Calculation**:
-  - Calculates total liquidity contributed by active LEAF pairs based on LEAF prices.
-
-- **Configuration Flexibility**:
-
-    ```python
-    LEAFPairsConfig(
-        # Define configurations as needed
-    )
-    ```
+- **Token Dynamics**:
+  - Manages the distribution of LEAF tokens as incentives for liquidity providers.
 
 ### AEGIS Model
 
-The AEGIS Model (`src/Functions/AEGIS.py`) manages LEAF and USDC balances and redemptions. It handles:
+The AEGIS Model (`src/Functions/AEGIS.py`) manages LEAF and USDC balances, including redemptions.
 
-- **Balance Tracking**:
-  - Monitors LEAF and USDC balances for liquidity providers.
+- **Balance Management**:
+  - Tracks LEAF and USDC balances over time.
+  - Handles redemption requests and updates balances accordingly.
 
-- **Redemption Mechanics**:
-  - Implements redemption processes based on predefined rules and market conditions.
-
-- **Integration with Other Models**:
-  - Coordinates with TVL and Revenue models to reflect changes in balances and revenues.
+- **Redemption Mechanisms**:
+  - Implements rules and constraints for token redemptions.
+  - Ensures sustainable balance management.
 
 ### OAK Distribution Model
 
-The OAK Distribution Model (`src/Functions/OAK.py`) manages OAK token distribution and redemption. Key features include:
+The OAK Distribution Model (`src/Functions/OAK.py`) manages OAK token distribution and redemption.
 
 - **Token Distribution**:
-  - Implements mechanisms for distributing OAK tokens to stakeholders.
-
-- **Redemption Processes**:
-  - Allows users to redeem OAK tokens for underlying assets based on specific rules.
+  - Controls the release schedule of OAK tokens.
+  - Manages redemption processes for participants.
 
 - **Supply Management**:
-  - Tracks total OAK supply and ensures distributions do not exceed predefined caps.
+  - Tracks remaining OAK supply.
+  - Implements mechanisms to adjust distribution based on market conditions.
+
+---
+
+## Simulation Activation Dates
+
+In the CanopyDFF simulation, various components are activated at specific months to mimic realistic deployment and growth scenarios. Staggering the activation dates allows for a more accurate representation of how each component impacts the overall ecosystem, both economically and in market parameters.
+
+### Activation Months
+
+```python
+activation_months = {
+    'LEAF_PAIRS_START_MONTH': 1,
+    'AEGIS_START_MONTH': 3,
+    'OAK_START_MONTH': 4,
+    'MARKET_START_MONTH': 5,
+    'PRICE_START_MONTH': 5,
+    'DISTRIBUTION_START_MONTH': 5,
+    'BOOST_START_MONTH': 6,
+}
+```
+
+#### LEAF_PAIRS_START_MONTH: Month 1
+
+- **Purpose**: Activates the LEAF Pairs Model, allowing participants to create liquidity pools with LEAF tokens.
+- **Benefit**: Early activation encourages liquidity provision, facilitating market depth and stability for LEAF token trading from the beginning.
+
+#### AEGIS_START_MONTH: Month 3
+
+- **Purpose**: Launches the AEGIS Model, introducing mechanisms for LEAF and USDC balance management, along with redemption features.
+- **Benefit**: Delaying AEGIS activation allows initial liquidity to build up, ensuring sufficient LEAF and USDC reserves for effective balance management and stabilization mechanisms.
+
+#### OAK_START_MONTH: Month 4
+
+- **Purpose**: Initiates the OAK Distribution Model, starting the distribution and redemption of OAK tokens.
+- **Benefit**: Timing the OAK distribution after initial liquidity and balance mechanisms are in place ensures that the token distribution occurs in a more mature market environment, enhancing token value and utility.
+
+#### MARKET_START_MONTH: Month 5
+
+- **Purpose**: Simulates the activation of broader market interactions, enabling external trading and market forces to impact the ecosystem.
+- **Benefit**: Introducing the market after foundational components are established allows the ecosystem to better absorb market volatility and participant behaviors, promoting stability.
+
+#### PRICE_START_MONTH: Month 5
+
+- **Purpose**: Activates dynamic pricing mechanisms for the LEAF token, allowing the price to fluctuate based on trading activity and liquidity.
+- **Benefit**: Implementing price dynamics after the market is active ensures that price changes reflect real market conditions, improving the accuracy of economic modeling and projections.
+
+#### DISTRIBUTION_START_MONTH: Month 5
+
+- **Purpose**: Begins the distribution of rewards and incentives to participants, such as staking rewards or liquidity mining incentives.
+- **Benefit**: Delaying distribution until the market and pricing mechanisms are active maximizes participant engagement and aligns incentives with market performance.
+
+#### BOOST_START_MONTH: Month 6
+
+- **Purpose**: Activates the BOOST functionality, enhancing the TVL and revenue models by incorporating boosted yields or incentives.
+- **Benefit**: Introducing BOOST after other components are operational magnifies its impact, leveraging existing liquidity and market participation to amplify growth and revenue generation.
+
+### Benefits of Staggered Activation
+
+- **Controlled Ecosystem Growth**: Staggering components ensures that the ecosystem grows in a controlled manner, allowing each component to build upon the foundations laid by the previous ones.
+
+- **Risk Mitigation**: Delaying certain functionalities reduces the risk of market shocks by ensuring that sufficient liquidity and stability mechanisms are in place before exposing the ecosystem to greater volatility.
+
+- **Enhanced Market Confidence**: Gradual activation builds trust among participants, as they can observe the system's performance over time, leading to increased engagement and investment.
+
+- **Optimized Resource Allocation**: Staggered deployment allows the development team to focus on each component's successful implementation and monitoring, ensuring high-quality performance and quick response to any issues.
 
 ---
 
@@ -171,90 +204,88 @@ The OAK Distribution Model (`src/Functions/OAK.py`) manages OAK token distributi
 
 ### Running Simulations
 
-To run the comprehensive simulation encompassing all models:
+To run the simulation and generate projections:
 
-1. **Activate Python Virtual Environment**:
-
-    ```bash
-    python3 -m venv venv
-    source venv/bin/activate
-    ```
-
-2. **Install Required Packages**:
+1. **Navigate to the Project Directory**
 
     ```bash
-    pip install -r requirements.txt
+    cd CanopyDFF
     ```
 
-3. **Run the Simulation**:
+2. **Execute the Simulation Script**
 
     ```bash
     python3 run_simulation.py
     ```
 
-    The simulation will execute the TVL, Revenue, LEAF Pairs, AEGIS, and OAK models over a 60-month period, generating comprehensive visualizations and detailed tables of key metrics.
+3. **View Outputs**
+
+    - The simulation will output plots and data to the console, illustrating the projected TVL, revenues, LEAF prices, and other key metrics over time.
 
 ### Modifying Parameters
 
-To customize simulation parameters:
+#### Adjust Simulation Parameters
 
-1. **Edit Configuration**:
+Modify the simulation parameters to test different scenarios. Parameters can be adjusted in `src/Simulations/simulate.py`.
 
-    Open `src/Simulations/simulate.py` and adjust the configurations for each model as needed. For example:
+##### Example
 
-    ```python
-    tvl_config = TVLModelConfig(
-        initial_move_tvl=800_000_000,         # $800M
-        initial_canopy_tvl=350_000_000,       # $350M
-        move_growth_rates=[1.5, 1, 0.75, 0.5, 0.4],  # Annual growth rates for 5 years
-        min_market_share=0.10,                # 10%
-        market_share_decay_rate=0.02,         # Decay rate
-        initial_boost_share=0.10,             # 10%
-        boost_growth_rate=1.0                 # Growth rate for boost
-    )
-    ```
+```python
+tvl_config = TVLModelConfig(
+    initial_move_tvl=800_000_000,         # $800M
+    initial_canopy_tvl=350_000_000,       # $350M
+    move_growth_rates=[1.5, 1, 0.75, 0.5, 0.4],  # Annual growth rates for 5 years
+    min_market_share=0.10,                # 10%
+    market_share_decay_rate=0.02,         # Decay rate
+    max_months=60                         # Projection duration in months
+)
+```
 
-2. **Adjust Activation Months**:
+#### Modifying Activation Dates
 
-    Define or modify the activation months for various components:
+To adjust the activation months of various components, edit the `activation_months` dictionary in `src/Simulations/simulate.py`:
 
-    ```python
-    activation_months = {
-        'LEAF_PAIRS_START_MONTH': 1,
-        'AEGIS_START_MONTH': 3,
-        'OAK_START_MONTH': 4,
-        'MARKET_START_MONTH': 5,
-        'PRICE_START_MONTH': 5,
-        'DISTRIBUTION_START_MONTH': 5,
-    }
-    ```
+```python
+activation_months = {
+    'LEAF_PAIRS_START_MONTH': 1,
+    'AEGIS_START_MONTH': 3,
+    'OAK_START_MONTH': 4,
+    'MARKET_START_MONTH': 5,
+    'PRICE_START_MONTH': 5,
+    'DISTRIBUTION_START_MONTH': 5,
+    'BOOST_START_MONTH': 6,
+}
+```
 
-3. **Update Assumptions**:
+**Impact of Changing Activation Dates**:
 
-    Ensure that `Assumptions.md` aligns with your parameter changes for consistency and accurate documentation.
+- **Earlier Activation**: Activating components earlier can simulate a more aggressive rollout strategy, potentially leading to faster ecosystem growth but may increase risk due to less mature infrastructure.
 
-4. **Re-run Simulations**:
+- **Later Activation**: Delaying activation can model a more conservative approach, allowing for greater stability and liquidity accumulation before introducing more complex mechanics.
 
-    After making changes, re-run the simulation to observe the impact of your adjustments.
+- **Custom Scenarios**: Adjust activation dates to create custom scenarios that align with different strategic goals or market conditions.
+
+#### Update Assumptions
+
+Ensure that `Assumptions.md` aligns with your parameter changes for consistency and accurate documentation.
+
+#### Re-run Simulations
+
+After making changes, re-run the simulation to observe the impact of your adjustments.
 
 ---
 
 ## Documentation
 
-Comprehensive documentation is available to provide detailed insights into each model and component:
+Detailed documentation for each component is available in the `Docs/` directory:
 
-- **[Assumptions.md](./Assumptions.md)**: Detailed model assumptions and configurations.
-- **[TVL.md](./Docs/TVL.md)**: Technical specification for the TVL model.
-- **[Revenue.md](./Docs/Revenue.md)**: Technical specification for the Revenue model.
-- **[LEAFPairs.md](./Docs/LEAFPairs.md)**: Technical specification for the LEAF Pairs model.
-- **[AEGIS.md](./Docs/AEGIS.md)**: Technical specification for the AEGIS LP model.
-- **[OAK.md](./Docs/OAK.md)**: Technical specification for the OAK Distribution model.
-- **[src/Functions/TVL.py](./src/Functions/TVL.py)**: Implementation of the TVL model.
-- **[src/Functions/Revenue.py](./src/Functions/Revenue.py)**: Implementation of the Revenue model.
-- **[src/Functions/LEAFPairs.py](./src/Functions/LEAFPairs.py)**: Implementation of the LEAF Pairs model.
-- **[src/Functions/AEGIS.py](./src/Functions/AEGIS.py)**: Implementation of the AEGIS model.
-- **[src/Functions/OAK.py](./src/Functions/OAK.py)**: Implementation of the OAK Distribution model.
-- **[src/Simulations/simulate.py](./src/Simulations/simulate.py)**: Simulation and visualization code.
+- `Docs/TVL.md`
+- `Docs/Revenue.md`
+- `Docs/LEAFPairs.md`
+- `Docs/AEGIS.md`
+- `Docs/OAK.md`
+
+These documents provide in-depth explanations, usage examples, and implementation details.
 
 ---
 
