@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
-from typing import Optional, Callable, List
+from typing import Optional, Callable, List, Dict
 import math
+import random
 
 @dataclass
 class TVLContribution:
@@ -14,7 +15,9 @@ class TVLContribution:
     exit_condition: Optional[Callable[['TVLContribution', int], bool]] = None
     end_month: Optional[int] = None  # Applicable for Contracted TVL
     decay_rate: Optional[float] = None  # Applicable for Organic TVL
-    expected_boost_rate: Optional[float] = None  # Applicable for Boosted TVL (annual APR)
+    expected_boost_rate: Optional[float] = None  # Applicable for Boosted TVL
+    counterparty: Optional[str] = None  # Added field for contracted TVL
+    category: Optional[str] = None  # Added field for contracted TVL type
 
     def calculate_revenue(self, month: int) -> float:
         """Calculate and accumulate revenue based on the revenue rate."""
@@ -27,6 +30,9 @@ class TVLContribution:
 
     def update_amount(self, month: int):
         """Update the amount_usd based on specific TVL type behaviors."""
+        if not self.active:
+            return
+        
         if self.tvl_type == 'Organic' and self.decay_rate:
             # Apply decay
             self.amount_usd *= (1 - self.decay_rate)
@@ -35,18 +41,54 @@ class TVLContribution:
             # Check exit condition after updating amount
             self.check_exit(month)
 
-    def check_exit(self, month: int):
-        """Check if the TVL should exit based on its exit condition."""
-        if not self.active:
-            return
-        if self.exit_condition and self.exit_condition(self, month):
-            self.active = False
-            self.on_exit(month)
+    def check_exit(self, month: int) -> Optional['TVLContribution']:
+        """Check if contract should exit and handle renewal."""
+        if not self.active or self.tvl_type != 'Contracted':
+            return None
+        
+        # Only process contracts ending this specific month
+        if month == self.end_month:
+            if random.random() < 0.5:  # 50% renewal chance
+                return TVLContribution(
+                    id=self.id + 1000,
+                    tvl_type=self.tvl_type,
+                    amount_usd=self.amount_usd,
+                    start_month=month,
+                    revenue_rate=self.revenue_rate,
+                    end_month=month + 6,
+                    exit_condition=self.exit_condition,
+                    counterparty=self.counterparty,
+                    category=self.category
+                )
+            else:
+                self.active = False
+                print(f"Contract {self.id} ({self.counterparty}) ended at month {month}")
+        
+        return None
 
     def on_exit(self, month: int):
         """Handle actions upon exiting the TVL."""
         print(f"{self.tvl_type} TVL {self.id} has exited at month {month}.")
         # Additional logic can be added here if needed
+
+    def renew_contract(self, month: int) -> Optional['TVLContribution']:
+        """Attempt to renew the contract with 50% probability."""
+        if self.tvl_type != 'Contracted':
+            return None
+        
+        if random.random() < 0.5:  # 50% renewal rate
+            return TVLContribution(
+                id=self.id + 1000,  # New ID for renewed contract
+                tvl_type=self.tvl_type,
+                amount_usd=self.amount_usd,
+                start_month=month,
+                revenue_rate=self.revenue_rate,
+                end_month=month + 6,  # 6-month duration
+                exit_condition=self.exit_condition,
+                counterparty=self.counterparty,
+                category=self.category
+            )
+        return None
 
     def get_state(self) -> dict:
         """Return the current state of the contribution."""
@@ -56,7 +98,9 @@ class TVLContribution:
             'amount_usd': self.amount_usd,
             'active': self.active,
             'accumulated_revenue': self.accumulated_revenue,
-        } 
+            'counterparty': self.counterparty,
+            'category': self.category
+        }
 
 @dataclass
 class TVLContributionHistory:
@@ -77,18 +121,35 @@ class TVLContributionHistory:
     
     def update_all(self, month: int):
         """Update all active contributions for the given month."""
+        # Process exits and renewals
+        new_contracts = []
         for contribution in self.get_active_contributions():
+            renewed = contribution.check_exit(month)
+            if renewed:
+                new_contracts.append(renewed)
             contribution.update_amount(month)
-            contribution.check_exit(month)
+        
+        # Add any renewed contracts
+        self.contributions.extend(new_contracts)
+        
+        # Add monthly new TVL
+        self.tvl_model.loader.add_monthly_contracted_tvl(month)
     
     def calculate_total_revenue(self, month: int) -> float:
         """Calculate total revenue from all active contributions for the month."""
         return sum(c.calculate_revenue(month) for c in self.get_active_contributions())
         
-    def record_state(self, month: int, contributions: list[TVLContribution]):
+    def record_state(self, month: int, contributions: List[TVLContribution]) -> None:
         """Record the state of all contributions for a given month."""
-        self.history[month] = [contrib.get_state() for contrib in contributions]
+        self.history[month] = [
+            {
+                'amount_usd': c.amount_usd,
+                'tvl_type': c.tvl_type,
+                'active': c.active
+            }
+            for c in contributions
+        ]
     
-    def get_history(self, month: int) -> list[dict]:
-        """Get the recorded state of all contributions for a given month."""
+    def get_history(self, month: int) -> List[Dict]:
+        """Get the recorded state for a given month."""
         return self.history.get(month, [])
