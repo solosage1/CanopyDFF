@@ -20,6 +20,7 @@ class Deal:
     tvl_revenue_rate: float = 0.0
     tvl_duration_months: int = 0
     tvl_category: str = "none"  # "none", "volatile", or "lending"
+    tvl_type: str = "none"      # "ProtocolLocked", "Contracted", "Organic", or "Boosted"
     tvl_accumulated_revenue: float = 0.0
     tvl_active: bool = True
     
@@ -62,6 +63,7 @@ def initialize_deals() -> List[Deal]:
         tvl_revenue_rate=0.04,
         tvl_duration_months=12,
         tvl_category="volatile",
+        tvl_type="Boosted",
         oak_amount=800_000,
         oak_vesting_months=12,
         oak_irr_threshold=15.0
@@ -73,6 +75,7 @@ def initialize_deals() -> List[Deal]:
         tvl_revenue_rate=0.005,
         tvl_duration_months=12,
         tvl_category="lending",
+        tvl_type="Boosted",
         oak_amount=400_000,
         oak_vesting_months=12,
         oak_irr_threshold=15.0
@@ -113,7 +116,8 @@ def initialize_deals() -> List[Deal]:
         tvl_amount=1_500_000,
         tvl_revenue_rate=0.02,
         tvl_duration_months=60,
-        tvl_category="volatile"
+        tvl_category="volatile",
+        tvl_type="ProtocolLocked"
     )
     
     # 4. Monthly Boost Deals
@@ -137,6 +141,7 @@ def initialize_deals() -> List[Deal]:
             "tvl_revenue_rate": 0.04,
             "tvl_duration_months": 12,
             "tvl_category": "volatile",
+            "tvl_type": "Contracted",
             "linear_ramp_months": 3
         },
         {
@@ -146,6 +151,7 @@ def initialize_deals() -> List[Deal]:
             "tvl_revenue_rate": 0.005,
             "tvl_duration_months": 12,
             "tvl_category": "lending",
+            "tvl_type": "Contracted",
             "linear_ramp_months": 3
         },
         {
@@ -155,6 +161,7 @@ def initialize_deals() -> List[Deal]:
             "tvl_revenue_rate": 0.04,
             "tvl_duration_months": 12,
             "tvl_category": "volatile",
+            "tvl_type": "Contracted",
             "linear_ramp_months": 3
         },
         {
@@ -164,6 +171,7 @@ def initialize_deals() -> List[Deal]:
             "tvl_revenue_rate": 0.005,
             "tvl_duration_months": 12,
             "tvl_category": "lending",
+            "tvl_type": "Contracted",
             "linear_ramp_months": 3
         },
         {
@@ -173,6 +181,7 @@ def initialize_deals() -> List[Deal]:
             "tvl_revenue_rate": 0.04,
             "tvl_duration_months": 12,
             "tvl_category": "volatile",
+            "tvl_type": "Contracted",
             "linear_ramp_months": 3
         },
         {
@@ -182,6 +191,7 @@ def initialize_deals() -> List[Deal]:
             "tvl_revenue_rate": 0.005,
             "tvl_duration_months": 12,
             "tvl_category": "lending",
+            "tvl_type": "Contracted",
             "linear_ramp_months": 3
         }
     ]

@@ -1,155 +1,96 @@
-from dataclasses import dataclass, field
-from typing import Optional, Callable, List, Dict
-import math
-import random
+from dataclasses import dataclass
+from typing import Dict, List, Optional
+from src.Data.deal import Deal
 
 @dataclass
 class TVLContribution:
-    id: int
-    tvl_type: str  # 'ProtocolLocked', 'Contracted', 'Organic', 'Boosted'
+    """Legacy class for backward compatibility."""
+    counterparty: str
     amount_usd: float
+    revenue_rate: float
     start_month: int
+    end_month: int
+    tvl_type: str  # 'ProtocolLocked', 'Contracted', 'Organic', or 'Boosted'
+    category: str  # 'volatile' or 'lending'
     active: bool = True
-    revenue_rate: float = 0.0  # Annual revenue rate as a decimal
-    accumulated_revenue: float = 0.0
-    exit_condition: Optional[Callable[['TVLContribution', int], bool]] = None
-    end_month: Optional[int] = None  # Applicable for Contracted TVL
-    decay_rate: Optional[float] = None  # Applicable for Organic TVL
-    expected_boost_rate: Optional[float] = None  # Applicable for Boosted TVL
-    counterparty: Optional[str] = None  # Added field for contracted TVL
-    category: Optional[str] = None  # Added field for contracted TVL type
 
-    def calculate_revenue(self, month: int) -> float:
-        """Calculate and accumulate revenue based on the revenue rate."""
-        if not self.active:
-            return 0.0
-        monthly_rate = (1 + self.revenue_rate) ** (1 / 12) - 1  # Compound interest
-        revenue = self.amount_usd * monthly_rate
-        self.accumulated_revenue += revenue
-        return revenue
-
-    def update_amount(self, month: int):
-        """Update the amount_usd based on specific TVL type behaviors."""
-        if not self.active:
-            return
-        
-        if self.tvl_type == 'Organic' and self.decay_rate:
-            # Apply decay
-            self.amount_usd *= (1 - self.decay_rate)
-            if self.amount_usd < 0:
-                self.amount_usd = 0
-            # Check exit condition after updating amount
-            self.check_exit(month)
-
-    def check_exit(self, month: int) -> Optional['TVLContribution']:
-        """Check if contract should exit and handle renewal."""
-        if not self.active or self.tvl_type != 'Contracted':
-            return None
-        
-        # Only process contracts ending this specific month
-        if month == self.end_month:
-            if random.random() < 0.5:  # 50% renewal chance
-                return TVLContribution(
-                    id=self.id + 1000,
-                    tvl_type=self.tvl_type,
-                    amount_usd=self.amount_usd,
-                    start_month=month,
-                    revenue_rate=self.revenue_rate,
-                    end_month=month + 6,
-                    exit_condition=self.exit_condition,
-                    counterparty=self.counterparty,
-                    category=self.category
-                )
-            else:
-                self.active = False
-                print(f"Contract {self.id} ({self.counterparty}) ended at month {month}")
-        
-        return None
-
-    def on_exit(self, month: int):
-        """Handle actions upon exiting the TVL."""
-        print(f"{self.tvl_type} TVL {self.id} has exited at month {month}.")
-        # Additional logic can be added here if needed
-
-    def renew_contract(self, month: int) -> Optional['TVLContribution']:
-        """Attempt to renew the contract with 50% probability."""
-        if self.tvl_type != 'Contracted':
-            return None
-        
-        if random.random() < 0.5:  # 50% renewal rate
-            return TVLContribution(
-                id=self.id + 1000,  # New ID for renewed contract
-                tvl_type=self.tvl_type,
-                amount_usd=self.amount_usd,
-                start_month=month,
-                revenue_rate=self.revenue_rate,
-                end_month=month + 6,  # 6-month duration
-                exit_condition=self.exit_condition,
-                counterparty=self.counterparty,
-                category=self.category
-            )
-        return None
-
-    def get_state(self) -> dict:
-        """Return the current state of the contribution."""
-        return {
-            'id': self.id,
-            'tvl_type': self.tvl_type,
-            'amount_usd': self.amount_usd,
-            'active': self.active,
-            'accumulated_revenue': self.accumulated_revenue,
-            'counterparty': self.counterparty,
-            'category': self.category
-        }
-
-@dataclass
 class TVLContributionHistory:
-    contributions: list[TVLContribution] = field(default_factory=list)
-    history: dict[int, list[dict]] = field(default_factory=dict)
+    """Handles conversion between Deal and TVLContribution objects."""
     
-    def add_contribution(self, contribution: TVLContribution):
-        """Add a new TVL contribution to the history."""
-        self.contributions.append(contribution)
-    
-    def get_active_contributions(self) -> list[TVLContribution]:
-        """Return a list of all active contributions."""
-        return [c for c in self.contributions if c.active]
-    
-    def calculate_total_tvl(self) -> float:
-        """Calculate the sum of all active TVL amounts."""
-        return sum(c.amount_usd for c in self.get_active_contributions())
-    
-    def update_all(self, month: int):
-        """Update all active contributions for the given month."""
-        # Process exits and renewals
-        new_contracts = []
-        for contribution in self.get_active_contributions():
-            renewed = contribution.check_exit(month)
-            if renewed:
-                new_contracts.append(renewed)
-            contribution.update_amount(month)
-        
-        # Add any renewed contracts
-        self.contributions.extend(new_contracts)
-        
-        # Add monthly new TVL
-        self.tvl_model.loader.add_monthly_contracted_tvl(month)
-    
-    def calculate_total_revenue(self, month: int) -> float:
-        """Calculate total revenue from all active contributions for the month."""
-        return sum(c.calculate_revenue(month) for c in self.get_active_contributions())
-        
-    def record_state(self, month: int, contributions: List[TVLContribution]) -> None:
-        """Record the state of all contributions for a given month."""
-        self.history[month] = [
-            {
-                'amount_usd': c.amount_usd,
-                'tvl_type': c.tvl_type,
-                'active': c.active
-            }
-            for c in contributions
+    @staticmethod
+    def deal_to_contribution(deal: Deal) -> Optional[TVLContribution]:
+        """Convert a Deal to a TVLContribution."""
+        if deal.tvl_amount <= 0 or deal.tvl_category == "none":
+            return None
+            
+        # Determine TVL type based on deal attributes
+        tvl_type = "Organic"  # default
+        if deal.leaf_pair_amount > 0:
+            tvl_type = "ProtocolLocked"
+        elif deal.linear_ramp_months > 0:
+            tvl_type = "Contracted"
+        elif deal.oak_amount > 0:
+            tvl_type = "Boosted"
+            
+        return TVLContribution(
+            counterparty=deal.counterparty,
+            amount_usd=deal.tvl_amount,
+            revenue_rate=deal.tvl_revenue_rate,
+            start_month=deal.start_month,
+            end_month=deal.start_month + deal.tvl_duration_months,
+            tvl_type=tvl_type,
+            category=deal.tvl_category,
+            active=deal.tvl_active
+        )
+
+    @staticmethod
+    def get_contributions_from_deals(deals: List[Deal]) -> List[TVLContribution]:
+        """Convert a list of Deals to TVLContributions."""
+        contributions = []
+        for deal in deals:
+            contribution = TVLContributionHistory.deal_to_contribution(deal)
+            if contribution:
+                contributions.append(contribution)
+        return contributions
+
+    @staticmethod
+    def get_active_contributions(deals: List[Deal], month: int) -> List[TVLContribution]:
+        """Get active TVL contributions for a given month from deals."""
+        contributions = TVLContributionHistory.get_contributions_from_deals(deals)
+        return [
+            c for c in contributions 
+            if c.active and c.start_month <= month < c.end_month
         ]
-    
-    def get_history(self, month: int) -> List[Dict]:
-        """Get the recorded state for a given month."""
-        return self.history.get(month, [])
+
+    @staticmethod
+    def get_tvl_by_type(deals: List[Deal], month: int) -> Dict[str, float]:
+        """Get TVL amounts grouped by type."""
+        active_deals = [d for d in deals if d.start_month <= month < (d.start_month + d.tvl_duration_months)]
+        
+        tvl_by_type = {
+            'ProtocolLocked': 0.0,
+            'Contracted': 0.0,
+            'Organic': 0.0,
+            'Boosted': 0.0
+        }
+        
+        for deal in active_deals:
+            if deal.tvl_amount > 0 and deal.tvl_type in tvl_by_type:
+                tvl_by_type[deal.tvl_type] += deal.tvl_amount
+            
+        return tvl_by_type
+
+    @staticmethod
+    def get_tvl_by_category(deals: List[Deal], month: int) -> Dict[str, float]:
+        """Get TVL amounts grouped by category (volatile/lending)."""
+        contributions = TVLContributionHistory.get_active_contributions(deals, month)
+        tvl_by_category = {
+            'volatile': 0.0,
+            'lending': 0.0
+        }
+        
+        for contribution in contributions:
+            if contribution.category in tvl_by_category:
+                tvl_by_category[contribution.category] += contribution.amount_usd
+            
+        return tvl_by_category

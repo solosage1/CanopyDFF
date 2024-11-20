@@ -2,13 +2,17 @@ from dataclasses import dataclass
 from typing import List, Dict, Tuple
 from collections import defaultdict
 from .UniswapV2Math import UniswapV2Math
+from src.Data.deal import Deal
 
 @dataclass
 class AEGISConfig:
+    """Configuration for AEGIS model."""
     initial_leaf_balance: float
     initial_usdc_balance: float
     leaf_price_decay_rate: float
     max_months: int
+    oak_to_usdc_rate: float = 1.0
+    oak_to_leaf_rate: float = 1.0
 
 class AEGISModel:
     def __init__(self, config: AEGISConfig):
@@ -16,19 +20,28 @@ class AEGISModel:
         self.leaf_balance = config.initial_leaf_balance
         self.usdc_balance = config.initial_usdc_balance
         self.leaf_price = 1.0  # Start at $1
+        self.oak_to_usdc_rate = config.oak_to_usdc_rate
+        self.oak_to_leaf_rate = config.oak_to_leaf_rate
         
         # Track history
-        self.leaf_balance_history = []
-        self.usdc_balance_history = []
+        self.leaf_balance_history = defaultdict(float)
+        self.usdc_balance_history = defaultdict(float)
         self.leaf_price_history = []
         self.redemption_history = defaultdict(float)
+        
+        # Initialize history with starting values
+        self.leaf_balance_history[0] = self.leaf_balance
+        self.usdc_balance_history[0] = self.usdc_balance
+        self.leaf_price_history.append(self.leaf_price)
         
     def get_state(self) -> Dict:
         """Return current state of the model"""
         return {
             'leaf_balance': self.leaf_balance,
             'usdc_balance': self.usdc_balance,
-            'leaf_price': self.leaf_price
+            'leaf_price': self.leaf_price,
+            'oak_to_usdc_rate': self.oak_to_usdc_rate,
+            'oak_to_leaf_rate': self.oak_to_leaf_rate
         }
         
     def handle_redemptions(self, month: int, redemption_rate: float) -> Tuple[float, float]:
@@ -64,8 +77,8 @@ class AEGISModel:
         self.apply_market_decay()
         
         # Record state
-        self.leaf_balance_history.append(self.leaf_balance)
-        self.usdc_balance_history.append(self.usdc_balance)
+        self.leaf_balance_history[month] = self.leaf_balance
+        self.usdc_balance_history[month] = self.usdc_balance
         self.leaf_price_history.append(self.leaf_price)
         
     def get_liquidity_within_percentage(self, percentage: float, current_price: float) -> Tuple[float, float]:
@@ -87,7 +100,7 @@ class AEGISModel:
             price_range_percentage=percentage,
             x_concentration=1.0,  # 1x for LEAF
             y_concentration=5.0   # 5x for USDC
-        ) 
+        )
 
     def update_balances(self, usdc_change: float = 0, leaf_change: float = 0) -> None:
         """
@@ -103,8 +116,3 @@ class AEGISModel:
         # Ensure balances don't go negative
         self.usdc_balance = max(0, self.usdc_balance)
         self.leaf_balance = max(0, self.leaf_balance)
-        
-        # Update history at current month if it exists
-        if hasattr(self, 'month'):
-            self.usdc_balance_history[self.month] = self.usdc_balance
-            self.leaf_balance_history[self.month] = self.leaf_balance

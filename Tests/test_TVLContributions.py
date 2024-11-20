@@ -1,127 +1,185 @@
 import unittest
-from src.Functions.TVLContributions import TVLContribution
-from src.Functions.TVL import TVLModel, TVLModelConfig
-from src.Functions.TVLLoader import TVLLoader
+import sys
+import os
+from pathlib import Path
+
+# Add the project root directory to Python path
+project_root = str(Path(__file__).parent.parent)
+sys.path.append(project_root)
+
+from src.Functions.TVLContributions import TVLContribution, TVLContributionHistory
+from src.Data.deal import Deal, initialize_deals
 
 class TestTVLContributions(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
+    def setUp(self):
         """Set up test fixtures."""
-        cls.tvl_model = TVLModel(TVLModelConfig(
-            revenue_rates={
-                'ProtocolLocked': 0.05,
-                'Contracted': 0.04,
-                'Organic': 0.03,
-                'Boosted': 0.06
-            }
-        ))
-        cls.loader = TVLLoader(cls.tvl_model)
-
-    def create_protocol_locked_tvl(self) -> TVLContribution:
-        """Factory method for creating protocol locked TVL."""
-        return TVLContribution(
-            id=1,
-            tvl_type='ProtocolLocked',
-            amount_usd=5_000_000,
-            start_month=0,
-            revenue_rate=0.05
+        self.test_deals = initialize_deals()
+        
+        # Create test deals for specific scenarios
+        self.protocol_locked_deal = Deal(
+            deal_id="test_001",
+            counterparty="TestProtocol",
+            start_month=1,
+            leaf_pair_amount=1_000_000,  # Makes it ProtocolLocked
+            tvl_amount=5_000_000,
+            tvl_revenue_rate=0.05,
+            tvl_duration_months=12,
+            tvl_category="volatile"
+        )
+        
+        self.contracted_deal = Deal(
+            deal_id="test_002",
+            counterparty="TestContract",
+            start_month=1,
+            tvl_amount=2_000_000,
+            tvl_revenue_rate=0.04,
+            tvl_duration_months=12,
+            tvl_category="lending",
+            linear_ramp_months=3  # Makes it Contracted
+        )
+        
+        self.boosted_deal = Deal(
+            deal_id="test_003",
+            counterparty="TestBoost",
+            start_month=1,
+            oak_amount=10_000,  # Makes it Boosted
+            tvl_amount=3_000_000,
+            tvl_revenue_rate=0.06,
+            tvl_duration_months=12,
+            tvl_category="volatile"
+        )
+        
+        self.organic_deal = Deal(
+            deal_id="test_004",
+            counterparty="TestOrganic",
+            start_month=1,
+            tvl_amount=1_000_000,
+            tvl_revenue_rate=0.03,
+            tvl_duration_months=12,
+            tvl_category="lending"
         )
 
-    def create_contracted_tvl(self) -> TVLContribution:
-        """Factory method for creating contracted TVL."""
-        return TVLContribution(
-            id=2,
-            tvl_type='Contracted',
-            amount_usd=2_000_000,
-            start_month=0,
-            revenue_rate=0.04,
-            end_month=12,
-            exit_condition=self.tvl_model.contract_end_condition
+    def test_deal_to_contribution_protocol_locked(self):
+        """Test conversion of ProtocolLocked deal to TVLContribution."""
+        contribution = TVLContributionHistory.deal_to_contribution(self.protocol_locked_deal)
+        self.assertIsNotNone(contribution)
+        self.assertEqual(contribution.tvl_type, "ProtocolLocked")
+        self.assertEqual(contribution.amount_usd, 5_000_000)
+        self.assertEqual(contribution.revenue_rate, 0.05)
+        self.assertEqual(contribution.category, "volatile")
+
+    def test_deal_to_contribution_contracted(self):
+        """Test conversion of Contracted deal to TVLContribution."""
+        contribution = TVLContributionHistory.deal_to_contribution(self.contracted_deal)
+        self.assertIsNotNone(contribution)
+        self.assertEqual(contribution.tvl_type, "Contracted")
+        self.assertEqual(contribution.amount_usd, 2_000_000)
+        self.assertEqual(contribution.category, "lending")
+
+    def test_deal_to_contribution_boosted(self):
+        """Test conversion of Boosted deal to TVLContribution."""
+        contribution = TVLContributionHistory.deal_to_contribution(self.boosted_deal)
+        self.assertIsNotNone(contribution)
+        self.assertEqual(contribution.tvl_type, "Boosted")
+        self.assertEqual(contribution.amount_usd, 3_000_000)
+        self.assertEqual(contribution.category, "volatile")
+
+    def test_deal_to_contribution_organic(self):
+        """Test conversion of Organic deal to TVLContribution."""
+        contribution = TVLContributionHistory.deal_to_contribution(self.organic_deal)
+        self.assertIsNotNone(contribution)
+        self.assertEqual(contribution.tvl_type, "Organic")
+        self.assertEqual(contribution.amount_usd, 1_000_000)
+        self.assertEqual(contribution.category, "lending")
+
+    def test_get_contributions_from_deals(self):
+        """Test conversion of multiple deals to TVLContributions."""
+        test_deals = [
+            self.protocol_locked_deal,
+            self.contracted_deal,
+            self.boosted_deal,
+            self.organic_deal
+        ]
+        contributions = TVLContributionHistory.get_contributions_from_deals(test_deals)
+        self.assertEqual(len(contributions), 4)
+        
+        # Verify all TVL types are represented
+        tvl_types = {c.tvl_type for c in contributions}
+        self.assertEqual(
+            tvl_types, 
+            {"ProtocolLocked", "Contracted", "Boosted", "Organic"}
         )
 
-    def create_organic_tvl(self) -> TVLContribution:
-        """Factory method for creating organic TVL."""
-        return TVLContribution(
-            id=3,
-            tvl_type='Organic',
-            amount_usd=1_000_000,
-            start_month=0,
-            revenue_rate=0.03,
-            decay_rate=0.15,
-            exit_condition=lambda c, m: c.amount_usd < 1000
+    def test_get_active_contributions(self):
+        """Test filtering of active contributions."""
+        test_deals = [
+            self.protocol_locked_deal,
+            self.contracted_deal,
+            self.boosted_deal,
+            self.organic_deal
+        ]
+        
+        # Test month 1 (all should be active)
+        month_1_contributions = TVLContributionHistory.get_active_contributions(test_deals, 1)
+        self.assertEqual(len(month_1_contributions), 4)
+        
+        # Test month 13 (all should be inactive due to duration)
+        month_13_contributions = TVLContributionHistory.get_active_contributions(test_deals, 13)
+        self.assertEqual(len(month_13_contributions), 0)
+
+    def test_get_tvl_by_type(self):
+        """Test TVL aggregation by type."""
+        test_deals = [
+            self.protocol_locked_deal,
+            self.contracted_deal,
+            self.boosted_deal,
+            self.organic_deal
+        ]
+        
+        tvl_by_type = TVLContributionHistory.get_tvl_by_type(test_deals, 1)
+        
+        self.assertEqual(tvl_by_type["ProtocolLocked"], 5_000_000)
+        self.assertEqual(tvl_by_type["Contracted"], 2_000_000)
+        self.assertEqual(tvl_by_type["Boosted"], 3_000_000)
+        self.assertEqual(tvl_by_type["Organic"], 1_000_000)
+
+    def test_get_tvl_by_category(self):
+        """Test TVL aggregation by category."""
+        test_deals = [
+            self.protocol_locked_deal,
+            self.contracted_deal,
+            self.boosted_deal,
+            self.organic_deal
+        ]
+        
+        tvl_by_category = TVLContributionHistory.get_tvl_by_category(test_deals, 1)
+        
+        # Protocol Locked (5M) + Boosted (3M) = 8M volatile
+        self.assertEqual(tvl_by_category["volatile"], 8_000_000)
+        # Contracted (2M) + Organic (1M) = 3M lending
+        self.assertEqual(tvl_by_category["lending"], 3_000_000)
+
+    def test_invalid_deal_conversion(self):
+        """Test handling of invalid deals."""
+        # Deal with no TVL
+        invalid_deal = Deal(
+            deal_id="test_005",
+            counterparty="TestInvalid",
+            start_month=1
         )
-
-    def create_boosted_tvl(self) -> TVLContribution:
-        """Factory method for creating boosted TVL."""
-        return TVLContribution(
-            id=4,
-            tvl_type='Boosted',
-            amount_usd=3_000_000,
-            start_month=0,
-            revenue_rate=0.06,
-            expected_boost_rate=0.05,
-            exit_condition=lambda c, m: c.expected_boost_rate < 0.04
+        contribution = TVLContributionHistory.deal_to_contribution(invalid_deal)
+        self.assertIsNone(contribution)
+        
+        # Deal with zero TVL
+        zero_tvl_deal = Deal(
+            deal_id="test_006",
+            counterparty="TestZero",
+            start_month=1,
+            tvl_amount=0,
+            tvl_category="volatile"
         )
-
-    def test_protocol_locked_tvl(self):
-        contrib = self.create_protocol_locked_tvl()
-        self.assertTrue(contrib.active)
-        revenue = contrib.calculate_revenue(1)
-        expected_revenue = 5_000_000 * ((1 + 0.05) ** (1 / 12) - 1)
-        self.assertAlmostEqual(revenue, expected_revenue, places=2)
-        contrib.check_exit(100)
-        self.assertTrue(contrib.active)
-
-    def test_contracted_tvl_exit(self):
-        contrib = self.create_contracted_tvl()
-        self.assertTrue(contrib.active)
-        contrib.check_exit(12)
-        self.assertFalse(contrib.active)
-
-    def test_organic_tvl_decay(self):
-        contrib = self.create_organic_tvl()
-        self.assertTrue(contrib.active)
-        for month in range(1, 51):
-            contrib.update_amount(month)
-            if not contrib.active:
-                break
-        self.assertFalse(contrib.active)
-        self.assertLess(contrib.amount_usd, 1000)
-
-    def test_boosted_tvl_exit(self):
-        contrib = self.create_boosted_tvl()
-        self.assertTrue(contrib.active)
-        for month in range(1, 13):
-            contrib.expected_boost_rate *= 0.95
-            contrib.check_exit(month)
-            if not contrib.active:
-                break
-        self.assertFalse(contrib.active)
-        self.assertLess(contrib.expected_boost_rate, 0.04)
-
-    def test_calculate_revenue(self):
-        contrib = TVLContribution(
-            id=5,
-            tvl_type='ProtocolLocked',
-            amount_usd=1_000_000,
-            start_month=0,
-            revenue_rate=0.12
-        )
-        revenue = contrib.calculate_revenue(0)
-        expected_revenue = 1_000_000 * ((1 + 0.12) ** (1 / 12) - 1)
-        self.assertAlmostEqual(revenue, expected_revenue, places=2)
-
-    def test_update_amount_organic(self):
-        contrib = TVLContribution(
-            id=6,
-            tvl_type='Organic',
-            amount_usd=500_000,
-            start_month=0,
-            decay_rate=0.02
-        )
-        contrib.update_amount(1)
-        expected_amount = 500_000 * (1 - 0.02)
-        self.assertAlmostEqual(contrib.amount_usd, expected_amount, places=2)
+        contribution = TVLContributionHistory.deal_to_contribution(zero_tvl_deal)
+        self.assertIsNone(contribution)
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,52 +1,40 @@
 from typing import Dict, List
 from .TVLContributions import TVLContribution
-from src.Data.initial_contributions import INITIAL_CONTRIBUTIONS, RAMP_SCHEDULE, COUNTERPARTIES
+from src.Data.deal import Deal, initialize_deals, get_active_deals
 import random
 
 class TVLLoader:
     def __init__(self, tvl_model):
         self.tvl_model = tvl_model
         self.id_counter = 1
+        self.deals = initialize_deals()
     
     def load_initial_contributions(self):
-        """Load initial contributions and ramp schedule."""
-        # Load initial contributions
-        for tvl_type, contributions in INITIAL_CONTRIBUTIONS.items():
-            for config in contributions:
-                contrib = self._create_contribution(tvl_type, config)
+        """Load initial contributions from unified deals."""
+        # Convert deals with TVL components into TVL contributions
+        for deal in self.deals:
+            if deal.tvl_amount > 0:
+                config = {
+                    'amount_usd': deal.tvl_amount,
+                    'start_month': deal.start_month,
+                    'revenue_rate': deal.tvl_revenue_rate,
+                    'duration_months': deal.tvl_duration_months,
+                    'counterparty': deal.counterparty,
+                    'category': deal.tvl_category
+                }
+                
+                # Create contribution from deal
+                contrib = self._create_contribution('Contracted', config)
                 self.tvl_model.contributions.append(contrib)
                 self.id_counter += 1
-        
-        # Load ramp schedule
-        for ramp in RAMP_SCHEDULE:
-            if ramp['month'] <= 3:  # Only process first 3 months
-                # Add volatile portion
-                self.add_new_contribution('Contracted', {
-                    'amount_usd': ramp['volatile'],
-                    'start_month': ramp['month'],
-                    'revenue_rate': 0.045,
-                    'duration_months': 12,
-                    'counterparty': random.choice(COUNTERPARTIES),
-                    'category': 'volatile'
-                })
-                
-                # Add lending portion
-                self.add_new_contribution('Contracted', {
-                    'amount_usd': ramp['lending'],
-                    'start_month': ramp['month'],
-                    'revenue_rate': 0.01,
-                    'duration_months': 12,
-                    'counterparty': random.choice(COUNTERPARTIES),
-                    'category': 'lending'
-                })
-    
-    def add_new_contribution(self, tvl_type: str, config: Dict):
+
+    def add_new_contribution(self, tvl_type: str, config: Dict) -> TVLContribution:
         """Add a new contribution during simulation."""
         contrib = self._create_contribution(tvl_type, config)
         self.tvl_model.contributions.append(contrib)
         self.id_counter += 1
         return contrib
-    
+
     def _create_contribution(self, tvl_type: str, config: Dict) -> TVLContribution:
         """Create a TVL contribution based on type and config."""
         base_params = {
@@ -75,28 +63,45 @@ class TVLLoader:
                 'exit_condition': self.tvl_model.boosted_exit_condition
             })
         
-        return TVLContribution(**base_params) 
+        return TVLContribution(**base_params)
 
     def add_monthly_contracted_tvl(self, month: int) -> None:
         """Add new monthly contracted TVL after month 3."""
         if month <= 3:
             return
         
-        # Add $20M monthly ($7.5M volatile, $12.5M lending)
-        self.add_new_contribution('Contracted', {
-            'amount_usd': 7_500_000,
-            'start_month': month,
-            'revenue_rate': 0.045,
-            'duration_months': 6,
-            'counterparty': random.choice(COUNTERPARTIES),
-            'category': 'volatile'
-        })
+        # Create new deals for monthly TVL additions
+        volatile_deal = Deal(
+            deal_id=f"VOL_{month:03d}",
+            counterparty=f"MonthlyVolatile_{month}",
+            start_month=month,
+            tvl_amount=7_500_000,
+            tvl_revenue_rate=0.045,
+            tvl_duration_months=6,
+            tvl_category="volatile"
+        )
         
-        self.add_new_contribution('Contracted', {
-            'amount_usd': 12_500_000,
-            'start_month': month,
-            'revenue_rate': 0.01,
-            'duration_months': 6,
-            'counterparty': random.choice(COUNTERPARTIES),
-            'category': 'lending'
-        })
+        lending_deal = Deal(
+            deal_id=f"LEND_{month:03d}",
+            counterparty=f"MonthlyLending_{month}",
+            start_month=month,
+            tvl_amount=12_500_000,
+            tvl_revenue_rate=0.01,
+            tvl_duration_months=6,
+            tvl_category="lending"
+        )
+        
+        # Add deals to the deals list
+        self.deals.extend([volatile_deal, lending_deal])
+        
+        # Create and add corresponding TVL contributions
+        for deal in [volatile_deal, lending_deal]:
+            config = {
+                'amount_usd': deal.tvl_amount,
+                'start_month': deal.start_month,
+                'revenue_rate': deal.tvl_revenue_rate,
+                'duration_months': deal.tvl_duration_months,
+                'counterparty': deal.counterparty,
+                'category': deal.tvl_category
+            }
+            self.add_new_contribution('Contracted', config)
