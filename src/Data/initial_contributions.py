@@ -7,7 +7,7 @@ INITIAL_CONTRIBUTIONS = {
             'amount_usd': 20_000_000,  # $20M volatile
             'start_month': 0,
             'revenue_rate': 0.04,
-            'duration_months': 6,
+            'duration_months': 12,
             'counterparty': 'AlphaTrading LLC',
             'category': 'volatile'
         },
@@ -15,7 +15,7 @@ INITIAL_CONTRIBUTIONS = {
             'amount_usd': 80_000_000,  # $80M lending
             'start_month': 0,
             'revenue_rate': 0.005,
-            'duration_months': 6,
+            'duration_months': 12,
             'counterparty': 'BetaLend Finance',
             'category': 'lending'
         }

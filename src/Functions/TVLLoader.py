@@ -25,7 +25,7 @@ class TVLLoader:
                     'amount_usd': ramp['volatile'],
                     'start_month': ramp['month'],
                     'revenue_rate': 0.045,
-                    'duration_months': 6,
+                    'duration_months': 12,
                     'counterparty': random.choice(COUNTERPARTIES),
                     'category': 'volatile'
                 })
@@ -35,7 +35,7 @@ class TVLLoader:
                     'amount_usd': ramp['lending'],
                     'start_month': ramp['month'],
                     'revenue_rate': 0.01,
-                    'duration_months': 6,
+                    'duration_months': 12,
                     'counterparty': random.choice(COUNTERPARTIES),
                     'category': 'lending'
                 })

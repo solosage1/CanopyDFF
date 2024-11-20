@@ -69,6 +69,28 @@ class OAKModel:
             self.logger.error(f"Error calculating IRR: {e}")
             return -float('inf')  # Assign a very low IRR to trigger redemption
 
+    def calculate_value_per_oak(
+        self,
+        aegis_usdc: float,
+        aegis_leaf: float,
+        current_leaf_price: float,
+        total_oak: float
+    ) -> float:
+        """
+        Calculate the current value per OAK token.
+        
+        Args:
+            aegis_usdc: Total USDC in AEGIS
+            aegis_leaf: Total LEAF in AEGIS
+            current_leaf_price: Current LEAF price
+            total_oak: Total unredeemed OAK tokens
+            
+        Returns:
+            float: Value per OAK token. Returns 0 if no OAK tokens exist.
+        """
+        total_value = aegis_usdc + (aegis_leaf * current_leaf_price)
+        return total_value / total_oak if total_oak > 0 else 0
+
     def step(
         self, 
         current_month: int,
@@ -84,8 +106,16 @@ class OAKModel:
         # Process distributions first
         distributions = self.process_monthly_distributions(current_month)
         
-        # Calculate total unredeemed OAK (use distributed_amount)
+        # Calculate total unredeemed OAK
         total_oak_before = sum(deal.distributed_amount for deal in self.config.deals)
+        
+        # Use the new method to calculate value per OAK
+        value_per_oak = self.calculate_value_per_oak(
+            aegis_usdc=aegis_usdc,
+            aegis_leaf=aegis_leaf,
+            current_leaf_price=current_leaf_price,
+            total_oak=total_oak_before
+        )
         
         # Track unredeemed OAK before processing any redemptions
         self.logger.debug(f"Total OAK before redemption: {total_oak_before}")
@@ -105,7 +135,6 @@ class OAKModel:
                 redemption_progress = min(1.0, max(0.0, months_into_redemption / total_redemption_months))
                 
                 if total_oak_before > 0:
-                    value_per_oak = total_value / total_oak_before
                     current_value = value_per_oak * redemption_progress
                     future_value = value_per_oak
                     

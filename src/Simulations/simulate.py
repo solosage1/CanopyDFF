@@ -4,10 +4,10 @@ from src.Functions.Revenue import RevenueModel
 from src.Functions.TVLContributions import TVLContributionHistory
 from src.Functions.LEAFPairs import LEAFPairsModel, LEAFPairsConfig
 from src.Data.leaf_deal import initialize_deals
-from typing import Dict, List
+from typing import Dict, List, Optional
 from src.Functions.AEGIS import AEGISConfig, AEGISModel
 import numpy as np  # type: ignore
-from src.Functions.OAK import OAKDistributionConfig, OAKModel
+from src.Functions.OAK import OAKDistributionConfig, OAKModel, OAKDistributionDeal
 from src.Data.oak_deals import get_oak_distribution_deals
 from src.Functions.LeafPrice import LEAFPriceModel, LEAFPriceConfig
 
@@ -92,6 +92,43 @@ def estimate_leaf_price(
         leaf_liquidity=leaf_liquidity,
         usd_liquidity=usd_liquidity,
         trade_amount_usd=trade_amount_usd
+    )
+
+def create_oak_deal_from_tvl(
+    tvl_type: str,
+    amount_usd: float,
+    revenue_rate: float,
+    start_month: int,
+    duration_months: int,
+    counterparty: str,
+    oak_model: OAKModel,
+    aegis_usdc: float,
+    aegis_leaf: float,
+    current_leaf_price: float
+) -> Optional[OAKDistributionDeal]:
+    """Create an OAK distribution deal for contracted TVL."""
+    if (tvl_type != 'Contracted' or 
+        duration_months < 12 or 
+        not counterparty):
+        return None
+        
+    # Use OAKModel's calculate_value_per_oak method for consistency
+    value_per_oak = oak_model.calculate_value_per_oak(
+        aegis_usdc=aegis_usdc,
+        aegis_leaf=aegis_leaf,
+        current_leaf_price=current_leaf_price,
+        total_oak=oak_model.config.total_oak_supply
+    )
+    
+    # Calculate OAK amount based on TVL amount and revenue rate
+    oak_amount = (amount_usd * revenue_rate) / value_per_oak if value_per_oak > 0 else 0
+    
+    return OAKDistributionDeal(
+        counterparty=f"{counterparty}_TVL_Incentive",
+        oak_amount=oak_amount,
+        start_month=start_month,
+        vesting_months=12,
+        irr_threshold=15.0  # Standard threshold for TVL incentives
     )
 
 def main():
@@ -203,6 +240,40 @@ def main():
         
         # Update OAK if active
         if month >= activation_months['OAK_START_MONTH']:
+            # Process new TVL contributions first
+            active_contributions = tvl_model.get_active_contributions(month)
+            
+            # Calculate current OAK price
+            value_per_oak = oak_model.calculate_value_per_oak(
+                aegis_usdc=aegis_model.usdc_balance,
+                aegis_leaf=aegis_model.leaf_balance,
+                current_leaf_price=current_leaf_price,
+                total_oak=oak_model.config.total_oak_supply
+            )
+            
+            # Create incentive deals for new contracted TVL
+            for contribution in active_contributions:
+                incentive_deal = create_oak_deal_from_tvl(
+                    tvl_type=contribution.tvl_type,
+                    amount_usd=contribution.amount_usd,
+                    revenue_rate=contribution.revenue_rate,
+                    start_month=contribution.start_month,
+                    duration_months=contribution.end_month - contribution.start_month,
+                    counterparty=contribution.counterparty,
+                    oak_model=oak_model,
+                    aegis_usdc=aegis_model.usdc_balance,
+                    aegis_leaf=aegis_model.leaf_balance,
+                    current_leaf_price=current_leaf_price
+                )
+                
+                if incentive_deal:
+                    oak_model.config.deals.append(incentive_deal)
+                    print(f"\nNew TVL Incentive Deal:")
+                    print(f"- Counterparty: {contribution.counterparty}")
+                    print(f"- TVL Amount: ${contribution.amount_usd:,.2f}")
+                    print(f"- Revenue Rate: {contribution.revenue_rate:.1%}")
+                    print(f"- OAK Amount: {incentive_deal.oak_amount:,.2f}")
+            
             # Process monthly distributions first
             oak_distributions = oak_model.process_monthly_distributions(month)
             if oak_distributions:

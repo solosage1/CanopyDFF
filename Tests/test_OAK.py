@@ -21,6 +21,7 @@ logger.addHandler(logging.StreamHandler())
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.Functions.OAK import OAKDistributionDeal, OAKDistributionConfig, OAKModel
+from src.Simulations.simulate import create_oak_deal_from_tvl
 
 class TestOAKModel(unittest.TestCase):
     def setUp(self):
@@ -298,6 +299,81 @@ class TestOAKModel(unittest.TestCase):
         logger.info(f"Calculated IRR: {irr:.2f}%")
         self.assertIsInstance(irr, float, "IRR should be a float value")
         # Add more assertions based on expected IRR value
+
+    def test_tvl_incentive_deal_creation(self):
+        """Test creation of OAK deals for TVL."""
+        logger.info("\n=== Testing TVL Incentive Deal Creation ===")
+        
+        # Create test OAK model with initial state
+        test_oak_model = OAKModel(OAKDistributionConfig(total_oak_supply=500_000))
+        
+        # Test with qualifying TVL
+        incentive_deal = create_oak_deal_from_tvl(
+            tvl_type="Contracted",
+            amount_usd=10_000_000,
+            revenue_rate=0.04,
+            start_month=5,
+            duration_months=12,
+            counterparty="QualifyingLP",
+            oak_model=test_oak_model,
+            aegis_usdc=1_000_000,
+            aegis_leaf=100_000,
+            current_leaf_price=1.0
+        )
+        
+        # Verify deal was created correctly
+        self.assertIsNotNone(incentive_deal)
+        self.assertEqual(
+            incentive_deal.counterparty,
+            "QualifyingLP_TVL_Incentive"
+        )
+        self.assertEqual(
+            incentive_deal.oak_amount,
+            400_000  # $10M * 0.04 = $400k worth of OAK at $1/OAK
+        )
+
+    def test_tvl_incentive_integration(self):
+        """Test integration of TVL incentives with OAK model."""
+        logger.info("\n=== Testing TVL Incentive Integration ===")
+        
+        # Create and add a TVL incentive deal
+        incentive_deal = OAKDistributionDeal(
+            counterparty="TestLP_TVL_Incentive",
+            oak_amount=100_000,
+            start_month=5,
+            vesting_months=12,
+            irr_threshold=15.0  # Lower threshold for TVL incentives
+        )
+        
+        # Add to model's deals
+        original_deal_count = len(self.model.config.deals)
+        self.model.config.deals.append(incentive_deal)
+        
+        # Process distributions through vesting period
+        for month in range(5, 18):
+            distributions = self.model.process_monthly_distributions(month)
+        
+        # Move to later in redemption period where IRR thresholds are more lenient
+        # and set conditions that should trigger redemption
+        redemption_amount, _, _, _, _ = self.model.step(
+            current_month=40,  # Later in redemption period
+            aegis_usdc=1000,   # Lower USDC to decrease IRR
+            aegis_leaf=100,    # Lower LEAF to decrease IRR
+            current_leaf_price=0.05  # Low price to decrease IRR
+        )
+        
+        # Calculate and log redemption progress
+        redemption_progress = (40 - self.config.redemption_start_month) / (
+            self.config.redemption_end_month - self.config.redemption_start_month
+        )
+        logger.info(f"\nRedemption progress: {redemption_progress:.2%}")
+        logger.info(f"Redemption amount: {redemption_amount}")
+        
+        self.assertGreater(
+            redemption_amount,
+            0,
+            "TVL incentive deals should be eligible for redemption"
+        )
 
 if __name__ == '__main__':
     unittest.main() 
