@@ -125,6 +125,13 @@ def track_liquidity_metrics(month: int, current_leaf_price: float, aegis_model: 
     # Get TVL breakdown
     tvl_breakdown = tvl_model.get_current_tvl_by_type()
     total_tvl = tvl_model.get_current_tvl()
+    
+    # Calculate IRR once and store it
+    current_value, irr = oak_model._calculate_monthly_metrics(
+        month,
+        value_per_oak,
+        current_leaf_price
+    ) if month >= oak_model.config.redemption_start_month else (0, 0)
 
     return {
         'month': month,
@@ -134,7 +141,8 @@ def track_liquidity_metrics(month: int, current_leaf_price: float, aegis_model: 
         'distributed_oak': distributed_oak,
         'redeemed_oak': redeemed_oak,
         'remaining_oak': remaining_oak,
-        'value_per_oak': value_per_oak
+        'value_per_oak': value_per_oak,
+        'irr': irr  # Store the IRR in metrics
     }
 
 def create_oak_deal_from_tvl(
@@ -477,33 +485,11 @@ def plot_simulation_results(months: List[int], metrics_history: List[Dict], cumu
     plt.subplot(2, 2, 3)
     plt.title('OAK IRR Metrics')
     
-    # Get IRR values from metrics history
-    irr_values = []
-    for month in months:
-        if month >= oak_model.config.redemption_start_month:
-            # Get current AEGIS values
-            aegis_usdc = aegis_model.usdc_balance_history[month]
-            aegis_leaf = aegis_model.leaf_balance_history[month]
-            leaf_price = metrics_history[month-1]['leaf_price']
-            
-            # Calculate value per OAK using current AEGIS state
-            value_per_oak = oak_model.calculate_value_per_oak(
-                aegis_usdc,
-                aegis_leaf,
-                leaf_price
-            )
-            
-            # Calculate redemption value and IRR
-            current_value, irr = oak_model._calculate_monthly_metrics(
-                month,
-                value_per_oak
-            )
-            irr_values.append(irr)
-        else:
-            irr_values.append(0)
+    # Use stored IRR values instead of recalculating
+    irr_values = [m['irr'] * 100 for m in metrics_history]  # Convert to percentage
     
     # Calculate weighted average threshold
-    weighted_threshold = oak_model.calculate_weighted_avg_irr_threshold()
+    weighted_threshold = oak_model.calculate_weighted_avg_irr_threshold() * 100  # Convert to percentage
     threshold_line = [weighted_threshold] * len(months)
     
     # Plot both lines
@@ -511,7 +497,6 @@ def plot_simulation_results(months: List[int], metrics_history: List[Dict], cumu
     plt.plot(months, threshold_line, '--', label='Weighted Avg Threshold', 
             color='#c0392b', linewidth=2)
     
-    # Add y-axis label and grid
     plt.xlabel('Month')
     plt.ylabel('IRR (%)')
     plt.legend(loc='upper left')

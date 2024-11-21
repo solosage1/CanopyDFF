@@ -149,26 +149,30 @@ class TVLModel:
             'Boosted': 0.0
         }
         
+        active_count = 0
+        skipped_count = 0
+        
         for contribution in contributions:
             if not contribution.active:
-                logging.debug(f"Skipping inactive contribution ID {contribution.id}")
+                skipped_count += 1
                 continue
                 
             if month < contribution.start_month or (contribution.end_month and month >= contribution.end_month):
-                logging.debug(f"Skipping out-of-range contribution ID {contribution.id}")
+                skipped_count += 1
                 continue
                 
             # Calculate this contribution's revenue using its specific rate
             contribution_revenue = contribution.calculate_revenue()
-            
-            logging.debug(
-                f"Processing contribution {contribution.id}:"
-                f"\n  Type: {contribution.tvl_type}"
-                f"\n  Amount: ${contribution.amount_usd:,.2f}"
-                f"\n  Rate: {contribution.revenue_rate:.2%}"
-                f"\n  Revenue: ${contribution_revenue:,.2f}"
-            )
-            
             revenue_by_category[contribution.tvl_type] += contribution_revenue
+            active_count += 1
+        
+        # Single summary log instead of per-contribution logging
+        logging.debug(f"\nMonth {month} TVL Revenue Summary:")
+        logging.debug(f"- Active Contributions: {active_count}")
+        logging.debug(f"- Skipped Contributions: {skipped_count}")
+        logging.debug(f"- Revenue by Category:")
+        for category, revenue in revenue_by_category.items():
+            if revenue > 0:
+                logging.debug(f"  • {category}: ${revenue:,.2f}")
         
         return revenue_by_category

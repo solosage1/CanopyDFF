@@ -28,7 +28,8 @@ class Deal:
     
     # LEAF Pair Parameters
     leaf_pair_amount: float = 0.0
-    leaf_percentage: float = 0.0
+    target_ratio: float = 0.0        # Renamed from leaf_percentage, defaulted to 0%
+    leaf_tokens: float = 0.0         # New field for explicit LEAF token amount
     leaf_base_concentration: float = 0.0
     leaf_max_concentration: float = 0.0
     leaf_duration_months: int = 0
@@ -195,7 +196,8 @@ def initialize_deals() -> List[Deal]:
         counterparty="Move",
         start_month=1,
         leaf_pair_amount=1_500_000,
-        leaf_percentage=0.35,
+        leaf_tokens=0.0,
+        target_ratio=0.35,
         leaf_base_concentration=0.5,
         leaf_max_concentration=0.8,
         leaf_duration_months=60,

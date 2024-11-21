@@ -20,11 +20,9 @@ class LEAFPairsModel:
 
     def _initialize_deals(self):
         for deal in self.deals:
-            # Initialize balances based on leaf_percentage
-            leaf_investment = deal.leaf_pair_amount * deal.leaf_percentage
-            deal.num_leaf_tokens = leaf_investment / 1.0  # Assuming initial LEAF price is $1.0
-            deal.leaf_balance = deal.num_leaf_tokens
-            deal.other_balance = deal.leaf_pair_amount - leaf_investment
+            # Initialize using explicit LEAF tokens amount
+            deal.leaf_balance = deal.leaf_tokens
+            deal.other_balance = deal.leaf_pair_amount - (deal.leaf_tokens * 1.0)  # Assuming $1.0 initial price
 
     def update_deals(self, month: int, leaf_price: float) -> float:
         """Update active deals for the given month. Returns LEAF tokens to buy."""
@@ -40,8 +38,7 @@ class LEAFPairsModel:
         return leaf_needed
 
     def calculate_leaf_needed(self, current_price: float) -> Tuple[Dict[str, float], float]:
-        """Calculate how many LEAF tokens need to be bought to reach target ratios.
-        Returns (deal_deficits, total_needed) where deal_deficits maps deal ID to LEAF needed."""
+        """Calculate how many LEAF tokens need to be bought to reach target ratios."""
         active_deals = self.get_active_deals(self.month)
         deal_deficits: Dict[str, float] = {}
         total_leaf_short = 0.0
@@ -50,7 +47,7 @@ class LEAFPairsModel:
             # Calculate current and target LEAF value
             total_value = (deal.leaf_balance * current_price) + deal.other_balance
             current_leaf_value = deal.leaf_balance * current_price
-            target_leaf_value = total_value * deal.leaf_percentage
+            target_leaf_value = total_value * deal.target_ratio
             
             # Calculate shortage
             if current_leaf_value < target_leaf_value:
@@ -113,8 +110,8 @@ class LEAFPairsModel:
 
     def _validate_deal(self, deal: Deal) -> None:
         """Validate the inputs of a new deal."""
-        if not 0 <= deal.leaf_percentage <= 0.5:
-            raise ValueError("LEAF percentage must be between 0% and 50%")
+        if not 0 <= deal.target_ratio <= 0.5:
+            raise ValueError("Target ratio must be between 0% and 50%")
         if not 0 < deal.leaf_base_concentration <= 1:
             raise ValueError("Concentration must be between 0% and 100%")
         if any(d.counterparty == deal.counterparty for d in self.deals):
@@ -139,7 +136,7 @@ class LEAFPairsModel:
             # Calculate current LEAF ratio vs target
             total_value = (deal.leaf_balance * current_price) + deal.other_balance
             current_leaf_ratio = (deal.leaf_balance * current_price) / total_value
-            target_ratio = deal.leaf_percentage
+            target_ratio = deal.target_ratio
             
             # Determine concentration based on LEAF balance health
             if current_leaf_ratio < target_ratio * 0.9:  # Low on LEAF

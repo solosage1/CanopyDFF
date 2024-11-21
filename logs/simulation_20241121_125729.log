@@ -1,0 +1,2661 @@
+Initialized TVL Model with config: TVLModelConfig(max_months=48, initial_tvl=0.0, revenue_rates={'ProtocolLocked': 0.04, 'Contracted': 0.025, 'Organic': 0.02, 'Boosted': 0.03})
+Loaded 11 initial TVL contributions
+Added organic contribution:
+  ID: 12
+  Amount: $12,000,000.00
+  Based on: Sigma Capital
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added organic contribution:
+  ID: 13
+  Amount: $8,000,000.00
+  Based on: Tau Lending
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added organic contribution:
+  ID: 14
+  Amount: $20,000,000.00
+  Based on: Upsilon Ventures
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added organic contribution:
+  ID: 15
+  Amount: $30,000,000.00
+  Based on: Phi Finance
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added organic contribution:
+  ID: 16
+  Amount: $30,000,000.00
+  Based on: Chi Trading
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added organic contribution:
+  ID: 17
+  Amount: $9,000,000.00
+  Based on: Sigma Capital
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added organic contribution:
+  ID: 18
+  Amount: $6,000,000.00
+  Based on: Tau Lending
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added organic contribution:
+  ID: 19
+  Amount: $15,000,000.00
+  Based on: Upsilon Ventures
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added organic contribution:
+  ID: 20
+  Amount: $20,000,000.00
+  Based on: Phi Finance
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added organic contribution:
+  ID: 21
+  Amount: $10,000,000.00
+  Based on: Chi Trading
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+
+=== Starting OAK Model ===
+Total Supply: 500,000.00
+Allocated to Deals: 285,000.00
+Initializing Revenue Model:
+  Base Rate: 2.00%
+  Revenue Rates: {'ProtocolLocked': 0.04, 'Contracted': 0.025, 'Organic': 0.02, 'Boosted': 0.03}
+No monthly TVL additions for month 1
+Month 1 TVL: $121,500,000.00
+
+Month 1 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $100,000,000.00
+- Organic: $20,000,000.00
+- Boosted: $0.00
+
+Month 1 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 0.00
+- Total USD: $1,500,000.00
+
+=== Month 1 ===
+
+OAK Value Calculation:
+  Total Value: $1,100,000,000.00
+  Unredeemed OAK: 500,000.00
+  Value per OAK: $2,200.00
+
+Month 1 TVL Revenue Summary:
+- Active Contributions: 5
+- Skipped Contributions: 16
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $201,666.67
+  • Organic: $33,333.33
+No monthly TVL additions for month 2
+Month 2 TVL: $120,500,000.00
+
+Month 2 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $100,000,000.00
+- Organic: $19,000,000.00
+- Boosted: $0.00
+AEGIS sold 525,000.00 LEAF for 525,000.00 USDC
+Deal Move_001 received 525,000.00 LEAF
+
+Month 2 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 525,000.00
+- Total USD: $1,500,000.00
+
+=== Month 2 ===
+
+Month 2 TVL Revenue Summary:
+- Active Contributions: 5
+- Skipped Contributions: 16
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $201,666.67
+  • Organic: $33,333.33
+No monthly TVL additions for month 3
+Month 3 TVL: $119,550,000.00
+
+Month 3 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $100,000,000.00
+- Organic: $18,050,000.00
+- Boosted: $0.00
+AEGIS sold 183,750.00 LEAF for 183,750.00 USDC
+Deal Move_001 received 183,750.00 LEAF
+
+Month 3 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 708,750.00
+- Total USD: $1,500,000.00
+
+=== Month 3 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 0.00%
+  Redemption Value: $0.00
+  Redemption Value per Token: $0.00
+  Total Value per Token: $2,200.00
+  Years Remaining: 3.75
+  IRR: -inf%
+
+=== Month 3 Status ===
+Value per OAK: $2,200.00
+Expected IRR: -inf%
+IRR calculation not possible - likely zero current value
+
+Month 3 TVL Revenue Summary:
+- Active Contributions: 5
+- Skipped Contributions: 16
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $201,666.67
+  • Organic: $33,333.33
+Added new deal: CONTRACT_004 with TVL amount $20000000
+Added organic contribution:
+  ID: 23
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_4
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 22 of type Contracted
+Month 4 TVL: $262,647,500.00
+
+Month 4 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $220,000,000.00
+- Organic: $41,147,500.00
+- Boosted: $0.00
+AEGIS sold 64,312.50 LEAF for 64,312.50 USDC
+Deal Move_001 received 64,312.50 LEAF
+
+Month 4 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 773,062.50
+- Total USD: $1,500,000.00
+
+=== Month 4 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 2.22%
+  Redemption Value: $24,444,444.44
+  Redemption Value per Token: $48.89
+  Total Value per Token: $2,200.00
+  Years Remaining: 3.67
+  IRR: 182.41%
+
+=== Month 4 Status ===
+Value per OAK: $2,200.00
+Expected IRR: 182.4%
+
+Redemption Status:
+
+Month 4 TVL Revenue Summary:
+- Active Contributions: 9
+- Skipped Contributions: 14
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $593,333.33
+  • Organic: $73,333.33
+Added new deal: CONTRACT_005 with TVL amount $20000000
+Added organic contribution:
+  ID: 25
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_5
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 24 of type Contracted
+Month 5 TVL: $284,590,125.00
+
+Month 5 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $240,000,000.00
+- Organic: $43,090,125.00
+- Boosted: $0.00
+AEGIS sold 22,509.38 LEAF for 22,509.38 USDC
+Deal Move_001 received 22,509.38 LEAF
+
+Month 5 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 795,571.88
+- Total USD: $1,500,000.00
+
+=== Month 5 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 4.44%
+  Redemption Value: $48,888,888.89
+  Redemption Value per Token: $97.78
+  Total Value per Token: $2,200.00
+  Years Remaining: 3.58
+  IRR: 138.43%
+
+=== Month 5 Status ===
+Value per OAK: $2,200.00
+Expected IRR: 138.4%
+
+Redemption Status:
+
+Month 5 TVL Revenue Summary:
+- Active Contributions: 11
+- Skipped Contributions: 14
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $635,000.00
+  • Organic: $80,000.00
+Added new deal: CONTRACT_006 with TVL amount $20000000
+Added organic contribution:
+  ID: 27
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_6
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 26 of type Contracted
+Month 6 TVL: $486,435,618.75
+
+Month 6 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $410,000,000.00
+- Organic: $74,935,618.75
+- Boosted: $0.00
+AEGIS sold 7,878.28 LEAF for 7,878.28 USDC
+Deal Move_001 received 7,878.28 LEAF
+
+Month 6 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 803,450.16
+- Total USD: $1,500,000.00
+
+=== Month 6 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 6.67%
+  Redemption Value: $73,333,333.33
+  Redemption Value per Token: $146.67
+  Total Value per Token: $2,200.00
+  Years Remaining: 3.50
+  IRR: 116.78%
+
+=== Month 6 Status ===
+Value per OAK: $2,200.00
+Expected IRR: 116.8%
+
+Redemption Status:
+
+Month 6 TVL Revenue Summary:
+- Active Contributions: 15
+- Skipped Contributions: 12
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $864,166.67
+  • Organic: $136,666.67
+Added new deal: CONTRACT_007 with TVL amount $20000000
+Added organic contribution:
+  ID: 29
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_7
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 28 of type Contracted
+Month 7 TVL: $506,688,837.81
+
+Month 7 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $430,000,000.00
+- Organic: $75,188,837.81
+- Boosted: $0.00
+AEGIS sold 2,757.40 LEAF for 2,757.40 USDC
+Deal Move_001 received 2,757.40 LEAF
+
+Month 7 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 806,207.55
+- Total USD: $1,500,000.00
+
+=== Month 7 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 8.89%
+  Redemption Value: $97,777,777.78
+  Redemption Value per Token: $195.56
+  Total Value per Token: $2,200.00
+  Years Remaining: 3.42
+  IRR: 103.07%
+
+=== Month 7 Status ===
+Value per OAK: $2,200.00
+Expected IRR: 103.1%
+
+Redemption Status:
+
+Month 7 TVL Revenue Summary:
+- Active Contributions: 17
+- Skipped Contributions: 12
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $905,833.33
+  • Organic: $143,333.33
+Added new deal: CONTRACT_008 with TVL amount $20000000
+Added organic contribution:
+  ID: 31
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_8
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 30 of type Contracted
+Month 8 TVL: $706,929,395.92
+
+Month 8 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $600,000,000.00
+- Organic: $105,429,395.92
+- Boosted: $0.00
+AEGIS sold 965.09 LEAF for 965.09 USDC
+Deal Move_001 received 965.09 LEAF
+
+Month 8 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,172.64
+- Total USD: $1,500,000.00
+
+=== Month 8 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 11.11%
+  Redemption Value: $122,222,222.22
+  Redemption Value per Token: $244.44
+  Total Value per Token: $2,200.00
+  Years Remaining: 3.33
+  IRR: 93.32%
+
+=== Month 8 Status ===
+Value per OAK: $2,200.00
+Expected IRR: 93.3%
+
+Redemption Status:
+
+Month 8 TVL Revenue Summary:
+- Active Contributions: 21
+- Skipped Contributions: 10
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $1,422,500.00
+  • Organic: $200,000.00
+Added new deal: CONTRACT_009 with TVL amount $20000000
+Added organic contribution:
+  ID: 33
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_9
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 32 of type Contracted
+Month 9 TVL: $725,657,926.13
+
+Month 9 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $620,000,000.00
+- Organic: $104,157,926.13
+- Boosted: $0.00
+AEGIS sold 337.78 LEAF for 337.78 USDC
+Deal Move_001 received 337.78 LEAF
+
+Month 9 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,510.43
+- Total USD: $1,500,000.00
+
+=== Month 9 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 13.33%
+  Redemption Value: $146,666,666.67
+  Redemption Value per Token: $293.33
+  Total Value per Token: $2,200.00
+  Years Remaining: 3.25
+  IRR: 85.89%
+
+=== Month 9 Status ===
+Value per OAK: $2,200.00
+Expected IRR: 85.9%
+
+Redemption Status:
+
+Month 9 TVL Revenue Summary:
+- Active Contributions: 23
+- Skipped Contributions: 10
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $1,464,166.67
+  • Organic: $206,666.67
+Added new deal: CONTRACT_010 with TVL amount $20000000
+Added organic contribution:
+  ID: 35
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_10
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 34 of type Contracted
+Month 10 TVL: $724,450,029.82
+
+Month 10 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $620,000,000.00
+- Organic: $102,950,029.82
+- Boosted: $0.00
+AEGIS sold 118.22 LEAF for 118.22 USDC
+Deal Move_001 received 118.22 LEAF
+
+Month 10 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,628.65
+- Total USD: $1,500,000.00
+
+=== Month 10 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 15.56%
+  Redemption Value: $171,111,111.11
+  Redemption Value per Token: $342.22
+  Total Value per Token: $2,200.00
+  Years Remaining: 3.17
+  IRR: 79.97%
+
+=== Month 10 Status ===
+Value per OAK: $2,200.00
+Expected IRR: 80.0%
+
+Redemption Status:
+
+Month 10 TVL Revenue Summary:
+- Active Contributions: 24
+- Skipped Contributions: 11
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $1,464,166.67
+  • Organic: $213,333.33
+Added new deal: CONTRACT_011 with TVL amount $20000000
+Added organic contribution:
+  ID: 37
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_11
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 36 of type Contracted
+Month 11 TVL: $723,302,528.33
+
+Month 11 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $620,000,000.00
+- Organic: $101,802,528.33
+- Boosted: $0.00
+AEGIS sold 41.38 LEAF for 41.38 USDC
+Deal Move_001 received 41.38 LEAF
+
+Month 11 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,670.03
+- Total USD: $1,500,000.00
+
+=== Month 11 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 17.78%
+  Redemption Value: $195,555,555.56
+  Redemption Value per Token: $391.11
+  Total Value per Token: $2,200.00
+  Years Remaining: 3.08
+  IRR: 75.10%
+
+=== Month 11 Status ===
+Value per OAK: $2,200.00
+Expected IRR: 75.1%
+
+Redemption Status:
+
+Month 11 TVL Revenue Summary:
+- Active Contributions: 25
+- Skipped Contributions: 12
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $1,464,166.67
+  • Organic: $220,000.00
+Added new deal: CONTRACT_012 with TVL amount $20000000
+Added organic contribution:
+  ID: 39
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_12
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 38 of type Contracted
+Month 12 TVL: $722,212,401.91
+
+Month 12 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $620,000,000.00
+- Organic: $100,712,401.91
+- Boosted: $0.00
+AEGIS sold 14.48 LEAF for 14.48 USDC
+Deal Move_001 received 14.48 LEAF
+
+Month 12 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,684.51
+- Total USD: $1,500,000.00
+
+=== Month 12 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 20.00%
+  Redemption Value: $220,000,000.00
+  Redemption Value per Token: $440.00
+  Total Value per Token: $2,200.00
+  Years Remaining: 3.00
+  IRR: 71.00%
+
+=== Month 12 Status ===
+Value per OAK: $2,200.00
+Expected IRR: 71.0%
+
+Redemption Status:
+
+Month 12 TVL Revenue Summary:
+- Active Contributions: 26
+- Skipped Contributions: 13
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $1,464,166.67
+  • Organic: $226,666.67
+Added new deal: CONTRACT_013 with TVL amount $20000000
+Added organic contribution:
+  ID: 41
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_13
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 40 of type Contracted
+Month 13 TVL: $711,176,781.82
+
+Month 13 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $595,000,000.00
+- Organic: $114,676,781.82
+- Boosted: $0.00
+AEGIS sold 5.07 LEAF for 5.07 USDC
+Deal Move_001 received 5.07 LEAF
+
+Month 13 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,689.58
+- Total USD: $1,500,000.00
+
+=== Month 13 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 22.22%
+  Redemption Value: $244,444,444.44
+  Redemption Value per Token: $488.89
+  Total Value per Token: $2,200.00
+  Years Remaining: 2.92
+  IRR: 67.48%
+
+=== Month 13 Status ===
+Value per OAK: $2,200.00
+Expected IRR: 67.5%
+
+Redemption Status:
+
+Month 13 TVL Revenue Summary:
+- Active Contributions: 29
+- Skipped Contributions: 12
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $1,400,000.00
+  • Organic: $258,333.33
+Added new deal: CONTRACT_014 with TVL amount $20000000
+Added organic contribution:
+  ID: 43
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_14
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 42 of type Contracted
+Month 14 TVL: $709,442,942.73
+
+Month 14 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $595,000,000.00
+- Organic: $112,942,942.73
+- Boosted: $0.00
+AEGIS sold 1.77 LEAF for 1.77 USDC
+Deal Move_001 received 1.77 LEAF
+
+Month 14 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,691.35
+- Total USD: $1,500,000.00
+
+=== Month 14 ===
+Distributing 175,000.00 OAK to Team (175,000.00/175,000.00)
+Distributing 25,000.00 OAK to Seed Investors (25,000.00/25,000.00)
+Distributing 25,000.00 OAK to Advisors (25,000.00/25,000.00)
+Total OAK distributed this month: 225,000.00
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 24.44%
+  Redemption Value: $268,888,888.89
+  Redemption Value per Token: $537.78
+  Total Value per Token: $2,200.00
+  Years Remaining: 2.83
+  IRR: 64.41%
+
+Redemption triggered for Seed Investors:
+  IRR: 64.4% < Threshold: 65.0%
+  Amount: 25,000.00 OAK
+Redeemed 25,000.00 OAK. Total redeemed: 25,000.00, Remaining unredeemed: 475,000.00
+
+=== Month 14 Status ===
+Value per OAK: $2,200.00
+Expected IRR: 64.4%
+
+Redemption Status:
+  Team: NOT ELIGIBLE (IRR: 64.4% vs threshold: 25.0%)
+  Seed Investors: ELIGIBLE (IRR: 64.4% vs threshold: 65.0%)
+  Advisors: NOT ELIGIBLE (IRR: 64.4% vs threshold: 45.0%)
+
+OAK Value Calculation:
+  Total Value: $1,100,000,000.00
+  Unredeemed OAK: 475,000.00
+  Value per OAK: $2,315.79
+
+Month 14 TVL Revenue Summary:
+- Active Contributions: 30
+- Skipped Contributions: 13
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $1,400,000.00
+  • Organic: $265,000.00
+Added new deal: CONTRACT_015 with TVL amount $20000000
+Added organic contribution:
+  ID: 45
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_15
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 44 of type Contracted
+Month 15 TVL: $707,795,795.59
+
+Month 15 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $595,000,000.00
+- Organic: $111,295,795.59
+- Boosted: $0.00
+AEGIS sold 0.62 LEAF for 0.62 USDC
+Deal Move_001 received 0.62 LEAF
+
+Month 15 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,691.97
+- Total USD: $1,500,000.00
+
+=== Month 15 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 26.67%
+  Redemption Value: $293,333,333.33
+  Redemption Value per Token: $586.67
+  Total Value per Token: $2,200.00
+  Years Remaining: 2.75
+  IRR: 61.71%
+
+=== Month 15 Status ===
+Value per OAK: $2,315.79
+Expected IRR: 61.7%
+
+Redemption Status:
+  Team: NOT ELIGIBLE (IRR: 61.7% vs threshold: 25.0%)
+  Seed Investors: ELIGIBLE (IRR: 61.7% vs threshold: 65.0%)
+  Advisors: NOT ELIGIBLE (IRR: 61.7% vs threshold: 45.0%)
+
+Month 15 TVL Revenue Summary:
+- Active Contributions: 31
+- Skipped Contributions: 14
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $1,400,000.00
+  • Organic: $271,666.67
+Added new deal: CONTRACT_016 with TVL amount $20000000
+Added organic contribution:
+  ID: 47
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_16
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 46 of type Contracted
+Month 16 TVL: $696,231,005.81
+
+Month 16 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $570,000,000.00
+- Organic: $124,731,005.81
+- Boosted: $0.00
+AEGIS sold 0.22 LEAF for 0.22 USDC
+Deal Move_001 received 0.22 LEAF
+
+Month 16 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.19
+- Total USD: $1,500,000.00
+
+=== Month 16 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 28.89%
+  Redemption Value: $317,777,777.78
+  Redemption Value per Token: $635.56
+  Total Value per Token: $2,200.00
+  Years Remaining: 2.67
+  IRR: 59.30%
+
+=== Month 16 Status ===
+Value per OAK: $2,315.79
+Expected IRR: 59.3%
+
+Redemption Status:
+  Team: NOT ELIGIBLE (IRR: 59.3% vs threshold: 25.0%)
+  Seed Investors: ELIGIBLE (IRR: 59.3% vs threshold: 65.0%)
+  Advisors: NOT ELIGIBLE (IRR: 59.3% vs threshold: 45.0%)
+
+Month 16 TVL Revenue Summary:
+- Active Contributions: 33
+- Skipped Contributions: 14
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $1,300,000.00
+  • Organic: $303,333.33
+Added new deal: CONTRACT_017 with TVL amount $20000000
+Added organic contribution:
+  ID: 49
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_17
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 48 of type Contracted
+Month 17 TVL: $693,994,455.52
+
+Month 17 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $570,000,000.00
+- Organic: $122,494,455.52
+- Boosted: $0.00
+AEGIS sold 0.08 LEAF for 0.08 USDC
+Deal Move_001 received 0.08 LEAF
+
+Month 17 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.27
+- Total USD: $1,500,000.00
+
+=== Month 17 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 31.11%
+  Redemption Value: $342,222,222.22
+  Redemption Value per Token: $684.44
+  Total Value per Token: $2,200.00
+  Years Remaining: 2.58
+  IRR: 57.14%
+
+=== Month 17 Status ===
+Value per OAK: $2,315.79
+Expected IRR: 57.1%
+
+Redemption Status:
+  Team: NOT ELIGIBLE (IRR: 57.1% vs threshold: 25.0%)
+  Seed Investors: ELIGIBLE (IRR: 57.1% vs threshold: 65.0%)
+  Advisors: NOT ELIGIBLE (IRR: 57.1% vs threshold: 45.0%)
+
+Month 17 TVL Revenue Summary:
+- Active Contributions: 34
+- Skipped Contributions: 15
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $1,300,000.00
+  • Organic: $310,000.00
+Added new deal: CONTRACT_018 with TVL amount $20000000
+Added organic contribution:
+  ID: 51
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_18
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 50 of type Contracted
+Month 18 TVL: $661,869,732.74
+
+Month 18 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $520,000,000.00
+- Organic: $140,369,732.74
+- Boosted: $0.00
+AEGIS sold 0.03 LEAF for 0.03 USDC
+Deal Move_001 received 0.03 LEAF
+
+Month 18 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.29
+- Total USD: $1,500,000.00
+
+=== Month 18 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 33.33%
+  Redemption Value: $366,666,666.67
+  Redemption Value per Token: $733.33
+  Total Value per Token: $2,200.00
+  Years Remaining: 2.50
+  IRR: 55.18%
+
+=== Month 18 Status ===
+Value per OAK: $2,315.79
+Expected IRR: 55.2%
+
+Redemption Status:
+  Team: NOT ELIGIBLE (IRR: 55.2% vs threshold: 25.0%)
+  Seed Investors: ELIGIBLE (IRR: 55.2% vs threshold: 65.0%)
+  Advisors: NOT ELIGIBLE (IRR: 55.2% vs threshold: 45.0%)
+
+Month 18 TVL Revenue Summary:
+- Active Contributions: 36
+- Skipped Contributions: 15
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $1,212,500.00
+  • Organic: $350,000.00
+Added new deal: CONTRACT_019 with TVL amount $20000000
+Added organic contribution:
+  ID: 53
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_19
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 52 of type Contracted
+Month 19 TVL: $658,851,246.11
+
+Month 19 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $520,000,000.00
+- Organic: $137,351,246.11
+- Boosted: $0.00
+AEGIS sold 0.01 LEAF for 0.01 USDC
+Deal Move_001 received 0.01 LEAF
+
+Month 19 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.30
+- Total USD: $1,500,000.00
+
+=== Month 19 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 35.56%
+  Redemption Value: $391,111,111.11
+  Redemption Value per Token: $782.22
+  Total Value per Token: $2,200.00
+  Years Remaining: 2.42
+  IRR: 53.40%
+
+=== Month 19 Status ===
+Value per OAK: $2,315.79
+Expected IRR: 53.4%
+
+Redemption Status:
+  Team: NOT ELIGIBLE (IRR: 53.4% vs threshold: 25.0%)
+  Seed Investors: ELIGIBLE (IRR: 53.4% vs threshold: 65.0%)
+  Advisors: NOT ELIGIBLE (IRR: 53.4% vs threshold: 45.0%)
+
+Month 19 TVL Revenue Summary:
+- Active Contributions: 37
+- Skipped Contributions: 16
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $1,212,500.00
+  • Organic: $356,666.67
+Added new deal: CONTRACT_020 with TVL amount $20000000
+Added organic contribution:
+  ID: 55
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_20
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 54 of type Contracted
+Month 20 TVL: $565,983,683.80
+
+Month 20 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $420,000,000.00
+- Organic: $144,483,683.80
+- Boosted: $0.00
+AEGIS sold 0.00 LEAF for 0.00 USDC
+Deal Move_001 received 0.00 LEAF
+
+Month 20 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 20 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 37.78%
+  Redemption Value: $415,555,555.56
+  Redemption Value per Token: $831.11
+  Total Value per Token: $2,200.00
+  Years Remaining: 2.33
+  IRR: 51.77%
+
+=== Month 20 Status ===
+Value per OAK: $2,315.79
+Expected IRR: 51.8%
+
+Redemption Status:
+  Team: NOT ELIGIBLE (IRR: 51.8% vs threshold: 25.0%)
+  Seed Investors: ELIGIBLE (IRR: 51.8% vs threshold: 65.0%)
+  Advisors: NOT ELIGIBLE (IRR: 51.8% vs threshold: 45.0%)
+
+Month 20 TVL Revenue Summary:
+- Active Contributions: 39
+- Skipped Contributions: 16
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $883,333.33
+  • Organic: $380,000.00
+Added new deal: CONTRACT_021 with TVL amount $20000000
+Added organic contribution:
+  ID: 57
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_21
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 56 of type Contracted
+Month 21 TVL: $562,759,499.61
+
+Month 21 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $420,000,000.00
+- Organic: $141,259,499.61
+- Boosted: $0.00
+AEGIS sold 0.00 LEAF for 0.00 USDC
+Deal Move_001 received 0.00 LEAF
+
+Month 21 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 21 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 40.00%
+  Redemption Value: $440,000,000.00
+  Redemption Value per Token: $880.00
+  Total Value per Token: $2,200.00
+  Years Remaining: 2.25
+  IRR: 50.27%
+
+=== Month 21 Status ===
+Value per OAK: $2,315.79
+Expected IRR: 50.3%
+
+Redemption Status:
+  Team: NOT ELIGIBLE (IRR: 50.3% vs threshold: 25.0%)
+  Seed Investors: ELIGIBLE (IRR: 50.3% vs threshold: 65.0%)
+  Advisors: NOT ELIGIBLE (IRR: 50.3% vs threshold: 45.0%)
+
+Month 21 TVL Revenue Summary:
+- Active Contributions: 40
+- Skipped Contributions: 17
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $883,333.33
+  • Organic: $386,666.67
+Added new deal: CONTRACT_022 with TVL amount $20000000
+Added organic contribution:
+  ID: 59
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_22
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 58 of type Contracted
+Month 22 TVL: $559,696,524.63
+
+Month 22 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $420,000,000.00
+- Organic: $138,196,524.63
+- Boosted: $0.00
+AEGIS sold 0.00 LEAF for 0.00 USDC
+Deal Move_001 received 0.00 LEAF
+
+Month 22 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 22 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 42.22%
+  Redemption Value: $464,444,444.44
+  Redemption Value per Token: $928.89
+  Total Value per Token: $2,200.00
+  Years Remaining: 2.17
+  IRR: 48.88%
+
+=== Month 22 Status ===
+Value per OAK: $2,315.79
+Expected IRR: 48.9%
+
+Redemption Status:
+  Team: NOT ELIGIBLE (IRR: 48.9% vs threshold: 25.0%)
+  Seed Investors: ELIGIBLE (IRR: 48.9% vs threshold: 65.0%)
+  Advisors: NOT ELIGIBLE (IRR: 48.9% vs threshold: 45.0%)
+
+Month 22 TVL Revenue Summary:
+- Active Contributions: 41
+- Skipped Contributions: 18
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $883,333.33
+  • Organic: $393,333.33
+Added new deal: CONTRACT_023 with TVL amount $20000000
+Added organic contribution:
+  ID: 61
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_23
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 60 of type Contracted
+Month 23 TVL: $556,786,698.40
+
+Month 23 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $420,000,000.00
+- Organic: $135,286,698.40
+- Boosted: $0.00
+AEGIS sold 0.00 LEAF for 0.00 USDC
+Deal Move_001 received 0.00 LEAF
+
+Month 23 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 23 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 44.44%
+  Redemption Value: $488,888,888.89
+  Redemption Value per Token: $977.78
+  Total Value per Token: $2,200.00
+  Years Remaining: 2.08
+  IRR: 47.59%
+
+=== Month 23 Status ===
+Value per OAK: $2,315.79
+Expected IRR: 47.6%
+
+Redemption Status:
+  Team: NOT ELIGIBLE (IRR: 47.6% vs threshold: 25.0%)
+  Seed Investors: ELIGIBLE (IRR: 47.6% vs threshold: 65.0%)
+  Advisors: NOT ELIGIBLE (IRR: 47.6% vs threshold: 45.0%)
+
+Month 23 TVL Revenue Summary:
+- Active Contributions: 42
+- Skipped Contributions: 19
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $883,333.33
+  • Organic: $400,000.00
+Added new deal: CONTRACT_024 with TVL amount $20000000
+Added organic contribution:
+  ID: 63
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_24
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 62 of type Contracted
+Month 24 TVL: $554,022,363.48
+
+Month 24 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $420,000,000.00
+- Organic: $132,522,363.48
+- Boosted: $0.00
+AEGIS sold 0.00 LEAF for 0.00 USDC
+Deal Move_001 received 0.00 LEAF
+
+Month 24 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 24 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 46.67%
+  Redemption Value: $513,333,333.33
+  Redemption Value per Token: $1,026.67
+  Total Value per Token: $2,200.00
+  Years Remaining: 2.00
+  IRR: 46.39%
+
+=== Month 24 Status ===
+Value per OAK: $2,315.79
+Expected IRR: 46.4%
+
+Redemption Status:
+  Team: NOT ELIGIBLE (IRR: 46.4% vs threshold: 25.0%)
+  Seed Investors: ELIGIBLE (IRR: 46.4% vs threshold: 65.0%)
+  Advisors: NOT ELIGIBLE (IRR: 46.4% vs threshold: 45.0%)
+
+Month 24 TVL Revenue Summary:
+- Active Contributions: 43
+- Skipped Contributions: 20
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $883,333.33
+  • Organic: $406,666.67
+Added new deal: CONTRACT_025 with TVL amount $20000000
+Added organic contribution:
+  ID: 65
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_25
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 64 of type Contracted
+Month 25 TVL: $476,396,245.30
+
+Month 25 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $345,000,000.00
+- Organic: $129,896,245.30
+- Boosted: $0.00
+AEGIS sold 0.00 LEAF for 0.00 USDC
+Deal Move_001 received 0.00 LEAF
+
+Month 25 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 25 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 48.89%
+  Redemption Value: $537,777,777.78
+  Redemption Value per Token: $1,075.56
+  Total Value per Token: $2,200.00
+  Years Remaining: 1.92
+  IRR: 45.26%
+
+=== Month 25 Status ===
+Value per OAK: $2,315.79
+Expected IRR: 45.3%
+
+Redemption Status:
+  Team: NOT ELIGIBLE (IRR: 45.3% vs threshold: 25.0%)
+  Seed Investors: ELIGIBLE (IRR: 45.3% vs threshold: 65.0%)
+  Advisors: NOT ELIGIBLE (IRR: 45.3% vs threshold: 45.0%)
+
+Month 25 TVL Revenue Summary:
+- Active Contributions: 42
+- Skipped Contributions: 23
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $745,833.33
+  • Organic: $413,333.33
+Added new deal: CONTRACT_026 with TVL amount $20000000
+Added organic contribution:
+  ID: 67
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_26
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 66 of type Contracted
+Month 26 TVL: $473,901,433.04
+
+Month 26 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $345,000,000.00
+- Organic: $127,401,433.04
+- Boosted: $0.00
+AEGIS sold 0.00 LEAF for 0.00 USDC
+Deal Move_001 received 0.00 LEAF
+
+Month 26 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 26 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 51.11%
+  Redemption Value: $562,222,222.22
+  Redemption Value per Token: $1,124.44
+  Total Value per Token: $2,200.00
+  Years Remaining: 1.83
+  IRR: 44.21%
+
+Redemption triggered for Advisors:
+  IRR: 44.2% < Threshold: 45.0%
+  Amount: 25,000.00 OAK
+Redeemed 25,000.00 OAK. Total redeemed: 50,000.00, Remaining unredeemed: 450,000.00
+
+=== Month 26 Status ===
+Value per OAK: $2,315.79
+Expected IRR: 44.2%
+
+Redemption Status:
+  Team: NOT ELIGIBLE (IRR: 44.2% vs threshold: 25.0%)
+  Seed Investors: ELIGIBLE (IRR: 44.2% vs threshold: 65.0%)
+  Advisors: ELIGIBLE (IRR: 44.2% vs threshold: 45.0%)
+
+OAK Value Calculation:
+  Total Value: $1,100,000,000.00
+  Unredeemed OAK: 450,000.00
+  Value per OAK: $2,444.44
+
+Month 26 TVL Revenue Summary:
+- Active Contributions: 43
+- Skipped Contributions: 24
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $745,833.33
+  • Organic: $420,000.00
+Added new deal: CONTRACT_027 with TVL amount $20000000
+Added organic contribution:
+  ID: 69
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_27
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 68 of type Contracted
+Month 27 TVL: $471,531,361.39
+
+Month 27 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $345,000,000.00
+- Organic: $125,031,361.39
+- Boosted: $0.00
+AEGIS sold 0.00 LEAF for 0.00 USDC
+Deal Move_001 received 0.00 LEAF
+
+Month 27 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 27 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 53.33%
+  Redemption Value: $586,666,666.67
+  Redemption Value per Token: $1,173.33
+  Total Value per Token: $2,200.00
+  Years Remaining: 1.75
+  IRR: 43.22%
+
+=== Month 27 Status ===
+Value per OAK: $2,444.44
+Expected IRR: 43.2%
+
+Redemption Status:
+  Team: NOT ELIGIBLE (IRR: 43.2% vs threshold: 25.0%)
+  Seed Investors: ELIGIBLE (IRR: 43.2% vs threshold: 65.0%)
+  Advisors: ELIGIBLE (IRR: 43.2% vs threshold: 45.0%)
+
+Month 27 TVL Revenue Summary:
+- Active Contributions: 44
+- Skipped Contributions: 25
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $745,833.33
+  • Organic: $426,666.67
+Added new deal: CONTRACT_028 with TVL amount $20000000
+Added organic contribution:
+  ID: 71
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_28
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 70 of type Contracted
+Month 28 TVL: $394,279,793.32
+
+Month 28 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $270,000,000.00
+- Organic: $122,779,793.32
+- Boosted: $0.00
+AEGIS sold 0.00 LEAF for 0.00 USDC
+Deal Move_001 received 0.00 LEAF
+
+Month 28 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 28 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 55.56%
+  Redemption Value: $611,111,111.11
+  Redemption Value per Token: $1,222.22
+  Total Value per Token: $2,200.00
+  Years Remaining: 1.67
+  IRR: 42.29%
+
+Month 28 TVL Revenue Summary:
+- Active Contributions: 44
+- Skipped Contributions: 27
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $495,833.33
+  • Organic: $433,333.33
+Added new deal: CONTRACT_029 with TVL amount $20000000
+Added organic contribution:
+  ID: 73
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_29
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 72 of type Contracted
+Month 29 TVL: $392,140,803.65
+
+Month 29 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $270,000,000.00
+- Organic: $120,640,803.65
+- Boosted: $0.00
+AEGIS sold 0.00 LEAF for 0.00 USDC
+Deal Move_001 received 0.00 LEAF
+
+Month 29 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 29 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 57.78%
+  Redemption Value: $635,555,555.56
+  Redemption Value per Token: $1,271.11
+  Total Value per Token: $2,200.00
+  Years Remaining: 1.58
+  IRR: 41.41%
+
+=== Month 29 Status ===
+Value per OAK: $2,444.44
+Expected IRR: 41.4%
+
+Redemption Status:
+  Team: NOT ELIGIBLE (IRR: 41.4% vs threshold: 25.0%)
+  Seed Investors: ELIGIBLE (IRR: 41.4% vs threshold: 65.0%)
+  Advisors: ELIGIBLE (IRR: 41.4% vs threshold: 45.0%)
+
+Month 29 TVL Revenue Summary:
+- Active Contributions: 45
+- Skipped Contributions: 28
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $495,833.33
+  • Organic: $440,000.00
+Added new deal: CONTRACT_030 with TVL amount $20000000
+Added organic contribution:
+  ID: 75
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_30
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 74 of type Contracted
+Month 30 TVL: $290,108,763.47
+
+Month 30 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $170,000,000.00
+- Organic: $118,608,763.47
+- Boosted: $0.00
+AEGIS sold 0.00 LEAF for 0.00 USDC
+Deal Move_001 received 0.00 LEAF
+
+Month 30 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 30 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 60.00%
+  Redemption Value: $660,000,000.00
+  Redemption Value per Token: $1,320.00
+  Total Value per Token: $2,200.00
+  Years Remaining: 1.50
+  IRR: 40.57%
+
+Month 30 TVL Revenue Summary:
+- Active Contributions: 45
+- Skipped Contributions: 30
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $395,833.33
+  • Organic: $446,666.67
+Added new deal: CONTRACT_031 with TVL amount $20000000
+Added organic contribution:
+  ID: 77
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_31
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 76 of type Contracted
+Month 31 TVL: $288,178,325.30
+
+Month 31 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $170,000,000.00
+- Organic: $116,678,325.30
+- Boosted: $0.00
+AEGIS sold 0.00 LEAF for 0.00 USDC
+Deal Move_001 received 0.00 LEAF
+
+Month 31 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 31 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 62.22%
+  Redemption Value: $684,444,444.44
+  Redemption Value per Token: $1,368.89
+  Total Value per Token: $2,200.00
+  Years Remaining: 1.42
+  IRR: 39.78%
+
+=== Month 31 Status ===
+Value per OAK: $2,444.44
+Expected IRR: 39.8%
+
+Redemption Status:
+  Team: NOT ELIGIBLE (IRR: 39.8% vs threshold: 25.0%)
+  Seed Investors: ELIGIBLE (IRR: 39.8% vs threshold: 65.0%)
+  Advisors: ELIGIBLE (IRR: 39.8% vs threshold: 45.0%)
+
+Month 31 TVL Revenue Summary:
+- Active Contributions: 46
+- Skipped Contributions: 31
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $395,833.33
+  • Organic: $453,333.33
+Added new deal: CONTRACT_032 with TVL amount $20000000
+Added organic contribution:
+  ID: 79
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_32
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 78 of type Contracted
+Month 32 TVL: $236,344,409.03
+
+Month 32 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $120,000,000.00
+- Organic: $114,844,409.03
+- Boosted: $0.00
+AEGIS sold 0.00 LEAF for 0.00 USDC
+Deal Move_001 received 0.00 LEAF
+
+Month 32 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 32 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 64.44%
+  Redemption Value: $708,888,888.89
+  Redemption Value per Token: $1,417.78
+  Total Value per Token: $2,200.00
+  Years Remaining: 1.33
+  IRR: 39.03%
+
+Month 32 TVL Revenue Summary:
+- Active Contributions: 46
+- Skipped Contributions: 33
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $250,000.00
+  • Organic: $460,000.00
+Added new deal: CONTRACT_033 with TVL amount $20000000
+Added organic contribution:
+  ID: 81
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_33
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 80 of type Contracted
+Month 33 TVL: $234,602,188.58
+
+Month 33 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $120,000,000.00
+- Organic: $113,102,188.58
+- Boosted: $0.00
+AEGIS sold 0.00 LEAF for 0.00 USDC
+Deal Move_001 received 0.00 LEAF
+
+Month 33 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 33 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 66.67%
+  Redemption Value: $733,333,333.33
+  Redemption Value per Token: $1,466.67
+  Total Value per Token: $2,200.00
+  Years Remaining: 1.25
+  IRR: 38.32%
+
+=== Month 33 Status ===
+Value per OAK: $2,444.44
+Expected IRR: 38.3%
+
+Redemption Status:
+  Team: NOT ELIGIBLE (IRR: 38.3% vs threshold: 25.0%)
+  Seed Investors: ELIGIBLE (IRR: 38.3% vs threshold: 65.0%)
+  Advisors: ELIGIBLE (IRR: 38.3% vs threshold: 45.0%)
+
+Month 33 TVL Revenue Summary:
+- Active Contributions: 47
+- Skipped Contributions: 34
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $250,000.00
+  • Organic: $466,666.67
+Added new deal: CONTRACT_034 with TVL amount $20000000
+Added organic contribution:
+  ID: 83
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_34
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 82 of type Contracted
+Month 34 TVL: $232,947,079.15
+
+Month 34 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $120,000,000.00
+- Organic: $111,447,079.15
+- Boosted: $0.00
+AEGIS sold 0.00 LEAF for 0.00 USDC
+Deal Move_001 received 0.00 LEAF
+
+Month 34 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 34 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 68.89%
+  Redemption Value: $757,777,777.78
+  Redemption Value per Token: $1,515.56
+  Total Value per Token: $2,200.00
+  Years Remaining: 1.17
+  IRR: 37.64%
+
+Month 34 TVL Revenue Summary:
+- Active Contributions: 48
+- Skipped Contributions: 35
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $250,000.00
+  • Organic: $473,333.33
+Added new deal: CONTRACT_035 with TVL amount $20000000
+Added organic contribution:
+  ID: 85
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_35
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 84 of type Contracted
+Month 35 TVL: $231,374,725.19
+
+Month 35 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $120,000,000.00
+- Organic: $109,874,725.19
+- Boosted: $0.00
+AEGIS sold 0.00 LEAF for 0.00 USDC
+Deal Move_001 received 0.00 LEAF
+
+Month 35 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 35 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 71.11%
+  Redemption Value: $782,222,222.22
+  Redemption Value per Token: $1,564.44
+  Total Value per Token: $2,200.00
+  Years Remaining: 1.08
+  IRR: 36.99%
+
+=== Month 35 Status ===
+Value per OAK: $2,444.44
+Expected IRR: 37.0%
+
+Redemption Status:
+  Team: NOT ELIGIBLE (IRR: 37.0% vs threshold: 25.0%)
+  Seed Investors: ELIGIBLE (IRR: 37.0% vs threshold: 65.0%)
+  Advisors: ELIGIBLE (IRR: 37.0% vs threshold: 45.0%)
+
+Month 35 TVL Revenue Summary:
+- Active Contributions: 49
+- Skipped Contributions: 36
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $250,000.00
+  • Organic: $480,000.00
+Added new deal: CONTRACT_036 with TVL amount $20000000
+Added organic contribution:
+  ID: 87
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_36
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 86 of type Contracted
+Month 36 TVL: $229,880,988.93
+
+Month 36 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $120,000,000.00
+- Organic: $108,380,988.93
+- Boosted: $0.00
+AEGIS sold 0.00 LEAF for 0.00 USDC
+Deal Move_001 received 0.00 LEAF
+
+Month 36 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 36 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 73.33%
+  Redemption Value: $806,666,666.67
+  Redemption Value per Token: $1,613.33
+  Total Value per Token: $2,200.00
+  Years Remaining: 1.00
+  IRR: 36.36%
+
+Month 36 TVL Revenue Summary:
+- Active Contributions: 50
+- Skipped Contributions: 37
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $250,000.00
+  • Organic: $486,666.67
+Added new deal: CONTRACT_037 with TVL amount $20000000
+Added organic contribution:
+  ID: 89
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_37
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 88 of type Contracted
+Month 37 TVL: $225,306,355.19
+
+Month 37 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $120,000,000.00
+- Organic: $103,806,355.19
+- Boosted: $0.00
+
+Month 37 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 37 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 75.56%
+  Redemption Value: $831,111,111.11
+  Redemption Value per Token: $1,662.22
+  Total Value per Token: $2,200.00
+  Years Remaining: 0.92
+  IRR: 35.77%
+
+=== Month 37 Status ===
+Value per OAK: $2,444.44
+Expected IRR: 35.8%
+
+Redemption Status:
+  Team: NOT ELIGIBLE (IRR: 35.8% vs threshold: 25.0%)
+  Seed Investors: ELIGIBLE (IRR: 35.8% vs threshold: 65.0%)
+  Advisors: ELIGIBLE (IRR: 35.8% vs threshold: 45.0%)
+
+Month 37 TVL Revenue Summary:
+- Active Contributions: 49
+- Skipped Contributions: 40
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $250,000.00
+  • Organic: $460,000.00
+Added new deal: CONTRACT_038 with TVL amount $20000000
+Added organic contribution:
+  ID: 91
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_38
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 90 of type Contracted
+Month 38 TVL: $224,116,037.43
+
+Month 38 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $120,000,000.00
+- Organic: $102,616,037.43
+- Boosted: $0.00
+
+Month 38 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 38 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 77.78%
+  Redemption Value: $855,555,555.56
+  Redemption Value per Token: $1,711.11
+  Total Value per Token: $2,200.00
+  Years Remaining: 0.83
+  IRR: 35.20%
+
+Month 38 TVL Revenue Summary:
+- Active Contributions: 50
+- Skipped Contributions: 41
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $250,000.00
+  • Organic: $466,666.67
+Added new deal: CONTRACT_039 with TVL amount $20000000
+Added organic contribution:
+  ID: 93
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_39
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 92 of type Contracted
+Month 39 TVL: $222,985,235.56
+
+Month 39 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $120,000,000.00
+- Organic: $101,485,235.56
+- Boosted: $0.00
+
+Month 39 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 39 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 80.00%
+  Redemption Value: $880,000,000.00
+  Redemption Value per Token: $1,760.00
+  Total Value per Token: $2,200.00
+  Years Remaining: 0.75
+  IRR: 34.65%
+
+=== Month 39 Status ===
+Value per OAK: $2,444.44
+Expected IRR: 34.7%
+
+Redemption Status:
+  Team: NOT ELIGIBLE (IRR: 34.7% vs threshold: 25.0%)
+  Seed Investors: ELIGIBLE (IRR: 34.7% vs threshold: 65.0%)
+  Advisors: ELIGIBLE (IRR: 34.7% vs threshold: 45.0%)
+
+Month 39 TVL Revenue Summary:
+- Active Contributions: 51
+- Skipped Contributions: 42
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $250,000.00
+  • Organic: $473,333.33
+Added new deal: CONTRACT_040 with TVL amount $20000000
+Added organic contribution:
+  ID: 95
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_40
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 94 of type Contracted
+Month 40 TVL: $218,124,272.63
+
+Month 40 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $120,000,000.00
+- Organic: $96,624,272.63
+- Boosted: $0.00
+
+Month 40 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 40 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 82.22%
+  Redemption Value: $904,444,444.44
+  Redemption Value per Token: $1,808.89
+  Total Value per Token: $2,200.00
+  Years Remaining: 0.67
+  IRR: 34.13%
+
+Month 40 TVL Revenue Summary:
+- Active Contributions: 50
+- Skipped Contributions: 45
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $250,000.00
+  • Organic: $440,000.00
+Added new deal: CONTRACT_041 with TVL amount $20000000
+Added organic contribution:
+  ID: 97
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_41
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 96 of type Contracted
+Month 41 TVL: $216,661,942.14
+
+Month 41 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $120,000,000.00
+- Organic: $95,161,942.14
+- Boosted: $0.00
+
+Month 41 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 41 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 84.44%
+  Redemption Value: $928,888,888.89
+  Redemption Value per Token: $1,857.78
+  Total Value per Token: $2,200.00
+  Years Remaining: 0.58
+  IRR: 33.62%
+
+=== Month 41 Status ===
+Value per OAK: $2,444.44
+Expected IRR: 33.6%
+
+Redemption Status:
+  Team: NOT ELIGIBLE (IRR: 33.6% vs threshold: 25.0%)
+  Seed Investors: ELIGIBLE (IRR: 33.6% vs threshold: 65.0%)
+  Advisors: ELIGIBLE (IRR: 33.6% vs threshold: 45.0%)
+
+Month 41 TVL Revenue Summary:
+- Active Contributions: 50
+- Skipped Contributions: 47
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $250,000.00
+  • Organic: $440,000.00
+Added new deal: CONTRACT_042 with TVL amount $20000000
+Added organic contribution:
+  ID: 99
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_42
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 98 of type Contracted
+Month 42 TVL: $210,539,351.73
+
+Month 42 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $120,000,000.00
+- Organic: $89,039,351.73
+- Boosted: $0.00
+
+Month 42 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 42 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 86.67%
+  Redemption Value: $953,333,333.33
+  Redemption Value per Token: $1,906.67
+  Total Value per Token: $2,200.00
+  Years Remaining: 0.50
+  IRR: 33.14%
+
+Month 42 TVL Revenue Summary:
+- Active Contributions: 49
+- Skipped Contributions: 50
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $250,000.00
+  • Organic: $390,000.00
+Added new deal: CONTRACT_043 with TVL amount $20000000
+Added organic contribution:
+  ID: 101
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_43
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 100 of type Contracted
+Month 43 TVL: $209,456,267.28
+
+Month 43 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $120,000,000.00
+- Organic: $87,956,267.28
+- Boosted: $0.00
+
+Month 43 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 43 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 88.89%
+  Redemption Value: $977,777,777.78
+  Redemption Value per Token: $1,955.56
+  Total Value per Token: $2,200.00
+  Years Remaining: 0.42
+  IRR: 32.67%
+
+Month 43 TVL Revenue Summary:
+- Active Contributions: 49
+- Skipped Contributions: 52
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $250,000.00
+  • Organic: $390,000.00
+Added new deal: CONTRACT_044 with TVL amount $20000000
+Added organic contribution:
+  ID: 103
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_44
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 102 of type Contracted
+Month 44 TVL: $203,693,960.61
+
+Month 44 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $120,000,000.00
+- Organic: $82,193,960.61
+- Boosted: $0.00
+
+Month 44 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 44 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 91.11%
+  Redemption Value: $1,002,222,222.22
+  Redemption Value per Token: $2,004.44
+  Total Value per Token: $2,200.00
+  Years Remaining: 0.33
+  IRR: 32.22%
+
+=== Month 44 Status ===
+Value per OAK: $2,444.44
+Expected IRR: 32.2%
+
+Redemption Status:
+  Team: NOT ELIGIBLE (IRR: 32.2% vs threshold: 25.0%)
+  Seed Investors: ELIGIBLE (IRR: 32.2% vs threshold: 65.0%)
+  Advisors: ELIGIBLE (IRR: 32.2% vs threshold: 45.0%)
+
+Month 44 TVL Revenue Summary:
+- Active Contributions: 48
+- Skipped Contributions: 55
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $250,000.00
+  • Organic: $340,000.00
+Added new deal: CONTRACT_045 with TVL amount $20000000
+Added organic contribution:
+  ID: 105
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_45
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 104 of type Contracted
+Month 45 TVL: $202,953,145.72
+
+Month 45 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $120,000,000.00
+- Organic: $81,453,145.72
+- Boosted: $0.00
+
+Month 45 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 45 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 93.33%
+  Redemption Value: $1,026,666,666.67
+  Redemption Value per Token: $2,053.33
+  Total Value per Token: $2,200.00
+  Years Remaining: 0.25
+  IRR: 31.78%
+
+Month 45 TVL Revenue Summary:
+- Active Contributions: 48
+- Skipped Contributions: 57
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $250,000.00
+  • Organic: $340,000.00
+Added new deal: CONTRACT_046 with TVL amount $20000000
+Added organic contribution:
+  ID: 107
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_46
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 106 of type Contracted
+Month 46 TVL: $202,249,371.58
+
+Month 46 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $120,000,000.00
+- Organic: $80,749,371.58
+- Boosted: $0.00
+
+Month 46 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 46 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 95.56%
+  Redemption Value: $1,051,111,111.11
+  Redemption Value per Token: $2,102.22
+  Total Value per Token: $2,200.00
+  Years Remaining: 0.17
+  IRR: 31.36%
+
+Month 46 TVL Revenue Summary:
+- Active Contributions: 48
+- Skipped Contributions: 59
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $250,000.00
+  • Organic: $340,000.00
+Added new deal: CONTRACT_047 with TVL amount $20000000
+Added organic contribution:
+  ID: 109
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_47
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 108 of type Contracted
+Month 47 TVL: $201,580,786.14
+
+Month 47 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $120,000,000.00
+- Organic: $80,080,786.14
+- Boosted: $0.00
+
+Month 47 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 47 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 97.78%
+  Redemption Value: $1,075,555,555.56
+  Redemption Value per Token: $2,151.11
+  Total Value per Token: $2,200.00
+  Years Remaining: 0.08
+  IRR: 30.95%
+
+=== Month 47 Status ===
+Value per OAK: $2,444.44
+Expected IRR: 31.0%
+
+Redemption Status:
+  Team: NOT ELIGIBLE (IRR: 31.0% vs threshold: 25.0%)
+  Seed Investors: ELIGIBLE (IRR: 31.0% vs threshold: 65.0%)
+  Advisors: ELIGIBLE (IRR: 31.0% vs threshold: 45.0%)
+
+Month 47 TVL Revenue Summary:
+- Active Contributions: 48
+- Skipped Contributions: 61
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $250,000.00
+  • Organic: $340,000.00
+Added new deal: CONTRACT_048 with TVL amount $20000000
+Added organic contribution:
+  ID: 111
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_48
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 110 of type Contracted
+Month 48 TVL: $200,945,629.98
+
+Month 48 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $120,000,000.00
+- Organic: $79,445,629.98
+- Boosted: $0.00
+
+Month 48 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 48 ===
+
+IRR Calculation:
+  Total Value: $1,100,000,000.00
+  Redemption Progress: 100.00%
+  Redemption Value: $1,100,000,000.00
+  Redemption Value per Token: $2,200.00
+  Total Value per Token: $2,200.00
+  Years Remaining: 0.00
+  IRR: 0.00%
+
+Redemption triggered for Team:
+  IRR: 0.0% < Threshold: 25.0%
+  Amount: 175,000.00 OAK
+Redeemed 175,000.00 OAK. Total redeemed: 225,000.00, Remaining unredeemed: 275,000.00
+
+=== Month 48 Status ===
+Value per OAK: $2,444.44
+Expected IRR: 0.0%
+
+Redemption Status:
+  Team: ELIGIBLE (IRR: 0.0% vs threshold: 25.0%)
+  Seed Investors: ELIGIBLE (IRR: 0.0% vs threshold: 65.0%)
+  Advisors: ELIGIBLE (IRR: 0.0% vs threshold: 45.0%)
+
+OAK Value Calculation:
+  Total Value: $1,100,000,000.00
+  Unredeemed OAK: 275,000.00
+  Value per OAK: $4,000.00
+
+Month 48 TVL Revenue Summary:
+- Active Contributions: 48
+- Skipped Contributions: 63
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $250,000.00
+  • Organic: $340,000.00
+Added new deal: CONTRACT_049 with TVL amount $20000000
+Added organic contribution:
+  ID: 113
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_49
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 112 of type Contracted
+Month 49 TVL: $197,975,543.40
+
+Month 49 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $120,000,000.00
+- Organic: $76,475,543.40
+- Boosted: $0.00
+
+Month 49 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 49 ===
+
+=== Month 49 Status ===
+Value per OAK: $4,000.00
+Expected IRR: 0.0%
+
+Redemption Status:
+  Team: ELIGIBLE (IRR: 0.0% vs threshold: 25.0%)
+  Seed Investors: ELIGIBLE (IRR: 0.0% vs threshold: 65.0%)
+  Advisors: ELIGIBLE (IRR: 0.0% vs threshold: 45.0%)
+
+Month 49 TVL Revenue Summary:
+- Active Contributions: 46
+- Skipped Contributions: 67
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $250,000.00
+  • Organic: $315,000.00
+Added new deal: CONTRACT_050 with TVL amount $20000000
+Added organic contribution:
+  ID: 115
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_50
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 114 of type Contracted
+Month 50 TVL: $197,520,649.37
+
+Month 50 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $120,000,000.00
+- Organic: $76,020,649.37
+- Boosted: $0.00
+
+Month 50 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 50 ===
+
+Month 50 TVL Revenue Summary:
+- Active Contributions: 46
+- Skipped Contributions: 69
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $250,000.00
+  • Organic: $315,000.00
+Added new deal: CONTRACT_051 with TVL amount $20000000
+Added organic contribution:
+  ID: 117
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_51
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 116 of type Contracted
+Month 51 TVL: $197,088,500.04
+
+Month 51 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $120,000,000.00
+- Organic: $75,588,500.04
+- Boosted: $0.00
+
+Month 51 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 51 ===
+
+Month 51 TVL Revenue Summary:
+- Active Contributions: 46
+- Skipped Contributions: 71
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $250,000.00
+  • Organic: $315,000.00
+Added new deal: CONTRACT_052 with TVL amount $20000000
+Added organic contribution:
+  ID: 119
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_52
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 118 of type Contracted
+Month 52 TVL: $194,311,269.96
+
+Month 52 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $120,000,000.00
+- Organic: $72,811,269.96
+- Boosted: $0.00
+
+Month 52 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 52 ===
+
+Month 52 TVL Revenue Summary:
+- Active Contributions: 45
+- Skipped Contributions: 74
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $250,000.00
+  • Organic: $290,000.00
+Added new deal: CONTRACT_053 with TVL amount $20000000
+Added organic contribution:
+  ID: 121
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_53
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 120 of type Contracted
+Month 53 TVL: $194,039,589.60
+
+Month 53 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $120,000,000.00
+- Organic: $72,539,589.60
+- Boosted: $0.00
+
+Month 53 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 53 ===
+
+Month 53 TVL Revenue Summary:
+- Active Contributions: 45
+- Skipped Contributions: 76
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $250,000.00
+  • Organic: $290,000.00
+Added new deal: CONTRACT_054 with TVL amount $20000000
+Added organic contribution:
+  ID: 123
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_54
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 122 of type Contracted
+Month 54 TVL: $190,625,908.96
+
+Month 54 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $120,000,000.00
+- Organic: $69,125,908.96
+- Boosted: $0.00
+
+Month 54 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 54 ===
+
+Month 54 TVL Revenue Summary:
+- Active Contributions: 44
+- Skipped Contributions: 79
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $250,000.00
+  • Organic: $256,666.67
+Added new deal: CONTRACT_055 with TVL amount $20000000
+Added organic contribution:
+  ID: 125
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_55
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 124 of type Contracted
+Month 55 TVL: $190,538,496.66
+
+Month 55 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $120,000,000.00
+- Organic: $69,038,496.66
+- Boosted: $0.00
+
+Month 55 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 55 ===
+
+Month 55 TVL Revenue Summary:
+- Active Contributions: 44
+- Skipped Contributions: 81
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $250,000.00
+  • Organic: $256,666.67
+Added new deal: CONTRACT_056 with TVL amount $20000000
+Added organic contribution:
+  ID: 127
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_56
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 126 of type Contracted
+Month 56 TVL: $188,877,662.82
+
+Month 56 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $120,000,000.00
+- Organic: $67,377,662.82
+- Boosted: $0.00
+
+Month 56 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 56 ===
+
+Month 56 TVL Revenue Summary:
+- Active Contributions: 43
+- Skipped Contributions: 84
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $250,000.00
+  • Organic: $240,000.00
+Added new deal: CONTRACT_057 with TVL amount $20000000
+Added organic contribution:
+  ID: 129
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_57
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 128 of type Contracted
+Month 57 TVL: $188,877,662.82
+
+Month 57 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $120,000,000.00
+- Organic: $67,377,662.82
+- Boosted: $0.00
+
+Month 57 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 57 ===
+
+Month 57 TVL Revenue Summary:
+- Active Contributions: 43
+- Skipped Contributions: 86
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $250,000.00
+  • Organic: $240,000.00
+Added new deal: CONTRACT_058 with TVL amount $20000000
+Added organic contribution:
+  ID: 131
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_58
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 130 of type Contracted
+Month 58 TVL: $188,877,662.82
+
+Month 58 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $120,000,000.00
+- Organic: $67,377,662.82
+- Boosted: $0.00
+
+Month 58 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 58 ===
+
+Month 58 TVL Revenue Summary:
+- Active Contributions: 43
+- Skipped Contributions: 88
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $250,000.00
+  • Organic: $240,000.00
+Added new deal: CONTRACT_059 with TVL amount $20000000
+Added organic contribution:
+  ID: 133
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_59
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 132 of type Contracted
+Month 59 TVL: $188,877,662.82
+
+Month 59 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $120,000,000.00
+- Organic: $67,377,662.82
+- Boosted: $0.00
+
+Month 59 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 59 ===
+
+Month 59 TVL Revenue Summary:
+- Active Contributions: 43
+- Skipped Contributions: 90
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $250,000.00
+  • Organic: $240,000.00
+Added new deal: CONTRACT_060 with TVL amount $20000000
+Added organic contribution:
+  ID: 135
+  Amount: $4,000,000.00
+  Based on: MonthlyContract_60
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added new TVL Contribution ID 134 of type Contracted
+Month 60 TVL: $188,877,662.82
+
+Month 60 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $120,000,000.00
+- Organic: $67,377,662.82
+- Boosted: $0.00
+
+Month 60 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 807,692.31
+- Total USD: $1,500,000.00
+
+=== Month 60 ===
+
+Month 60 TVL Revenue Summary:
+- Active Contributions: 43
+- Skipped Contributions: 92
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $250,000.00
+  • Organic: $240,000.00

@@ -1,0 +1,139 @@
+Initialized TVL Model with config: TVLModelConfig(max_months=48, initial_tvl=0.0, revenue_rates={'ProtocolLocked': 0.04, 'Contracted': 0.025, 'Organic': 0.02, 'Boosted': 0.03})
+Loaded 11 initial TVL contributions
+Added organic contribution:
+  ID: 12
+  Amount: $12,000,000.00
+  Based on: Sigma Capital
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added organic contribution:
+  ID: 13
+  Amount: $8,000,000.00
+  Based on: Tau Lending
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added organic contribution:
+  ID: 14
+  Amount: $20,000,000.00
+  Based on: Upsilon Ventures
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added organic contribution:
+  ID: 15
+  Amount: $30,000,000.00
+  Based on: Phi Finance
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added organic contribution:
+  ID: 16
+  Amount: $30,000,000.00
+  Based on: Chi Trading
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added organic contribution:
+  ID: 17
+  Amount: $9,000,000.00
+  Based on: Sigma Capital
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added organic contribution:
+  ID: 18
+  Amount: $6,000,000.00
+  Based on: Tau Lending
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added organic contribution:
+  ID: 19
+  Amount: $15,000,000.00
+  Based on: Upsilon Ventures
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added organic contribution:
+  ID: 20
+  Amount: $20,000,000.00
+  Based on: Phi Finance
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+Added organic contribution:
+  ID: 21
+  Amount: $10,000,000.00
+  Based on: Chi Trading
+  Decay Rate: 5.0%/month
+  Duration: 36 months
+
+=== Starting OAK Model ===
+Total Supply: 500,000.00
+Allocated to Deals: 285,000.00
+Initializing Revenue Model:
+  Base Rate: 2.00%
+  Revenue Rates: {'ProtocolLocked': 0.04, 'Contracted': 0.025, 'Organic': 0.02, 'Boosted': 0.03}
+No monthly TVL additions for month 1
+Month 1 TVL: $121,500,000.00
+
+Month 1 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $100,000,000.00
+- Organic: $20,000,000.00
+- Boosted: $0.00
+
+Month 1 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 0.00
+- Total USD: $1,500,000.00
+
+=== Month 1 ===
+
+OAK Value Calculation:
+  Total Value: $1,100,000,000.00
+  Unredeemed OAK: 500,000.00
+  Value per OAK: $2,200.00
+
+Month 1 TVL Revenue Summary:
+- Active Contributions: 5
+- Skipped Contributions: 16
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $201,666.67
+  • Organic: $33,333.33
+No monthly TVL additions for month 2
+Month 2 TVL: $120,500,000.00
+
+Month 2 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $100,000,000.00
+- Organic: $19,000,000.00
+- Boosted: $0.00
+AEGIS sold 525,000.00 LEAF for 525,000.00 USDC
+Deal Move_001 received 525,000.00 LEAF
+
+Month 2 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 525,000.00
+- Total USD: $1,500,000.00
+
+=== Month 2 ===
+
+Month 2 TVL Revenue Summary:
+- Active Contributions: 5
+- Skipped Contributions: 16
+- Revenue by Category:
+  • ProtocolLocked: $12,500.00
+  • Contracted: $201,666.67
+  • Organic: $33,333.33
+No monthly TVL additions for month 3
+Month 3 TVL: $119,550,000.00
+
+Month 3 TVL Breakdown:
+- ProtocolLocked: $1,500,000.00
+- Contracted: $100,000,000.00
+- Organic: $18,050,000.00
+- Boosted: $0.00
+AEGIS sold 183,750.00 LEAF for 183,750.00 USDC
+Deal Move_001 received 183,750.00 LEAF
+
+Month 3 LEAF Pairs:
+- Active Deals: 1
+- Total LEAF: 708,750.00
+- Total USD: $1,500,000.00
+
+=== Month 3 ===

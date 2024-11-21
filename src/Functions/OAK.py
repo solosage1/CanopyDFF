@@ -61,6 +61,9 @@ class OAKModel:
         
         # Calculate total redemption period length
         self.redemption_period_months = config.redemption_end_month - config.redemption_start_month
+        
+        self.last_oak_value = None
+        self.last_irr_value = None
     
     def _should_log_changes(self, value_per_oak: float, irr: float) -> bool:
         """Determine if changes are significant enough to log."""
@@ -128,38 +131,34 @@ class OAKModel:
         
         value_per_oak = total_value / unredeemed
         
-        self.logger.debug(
-            f"OAK Value Calculation:\n"
-            f"  Total Value: ${total_value:,.2f}\n"
-            f"  Unredeemed OAK: {unredeemed:,.2f}\n"
-            f"  Value per OAK: ${value_per_oak:,.2f}"
-        )
+        # Only log if value has changed significantly
+        if self.last_oak_value is None or abs(value_per_oak - self.last_oak_value) > 0.01:
+            logging.debug("\nOAK Value Calculation:")
+            logging.debug(f"  Total Value: ${total_value:,.2f}")
+            logging.debug(f"  Unredeemed OAK: {unredeemed:,.2f}")
+            logging.debug(f"  Value per OAK: ${value_per_oak:,.2f}")
+            self.last_oak_value = value_per_oak
         
         return value_per_oak
         
-    def _calculate_monthly_metrics(self, month: int, value_per_oak: float) -> Tuple[float, float]:
-        """Calculate current value and IRR metrics."""
-        # Calculate total AEGIS value
-        total_value = (self.aegis_model.usdc_balance + 
-                      (self.aegis_model.leaf_balance * value_per_oak))
-        
-        # Calculate redemption progress (linear from start to end month)
+    def _calculate_monthly_metrics(self, month: int, value_per_oak: float, current_leaf_price: float) -> Tuple[float, float]:
+        """Calculate current value and IRR for OAK tokens."""
         if month < self.config.redemption_start_month:
-            redemption_progress = 0.0
-        elif month > self.config.redemption_end_month:
-            redemption_progress = 1.0
-        else:
-            redemption_progress = (month - self.config.redemption_start_month) / self.redemption_period_months
+            return 0, 0
         
-        # Calculate current (redemption) value and future (total) value per token
-        unredeemed_tokens = self.total_oak_supply - self.redeemed_oak
-        if unredeemed_tokens <= 0:
-            return 0.0, float('-inf')
+        # Calculate redemption progress
+        total_redemption_months = self.config.redemption_end_month - self.config.redemption_start_month
+        months_into_redemption = month - self.config.redemption_start_month
+        redemption_progress = min(months_into_redemption / total_redemption_months, 1.0)
+        
+        # Calculate total value using LEAF price for LEAF balance and direct USDC
+        total_value = (self.aegis_model.usdc_balance + 
+                      (self.aegis_model.leaf_balance * current_leaf_price))
         
         # Calculate redemption value (current value) and total value (future value)
         redemption_value = total_value * redemption_progress
-        redemption_value_per_token = redemption_value / unredeemed_tokens
-        total_value_per_token = total_value / unredeemed_tokens
+        redemption_value_per_token = redemption_value / self.total_oak_supply
+        total_value_per_token = total_value / self.total_oak_supply
         
         # Calculate years remaining for IRR calculation
         years_remaining = max((self.config.redemption_end_month - month) / 12, 0.0001)
@@ -167,16 +166,17 @@ class OAKModel:
         # Calculate IRR using redemption value as current value and total value as future value
         irr = self.calculate_expected_irr(redemption_value_per_token, total_value_per_token, years_remaining)
         
-        self.logger.debug(
-            f"\nIRR Calculation:\n"
-            f"  Total Value: ${total_value:,.2f}\n"
-            f"  Redemption Progress: {redemption_progress:.2%}\n"
-            f"  Redemption Value: ${redemption_value:,.2f}\n"
-            f"  Redemption Value per Token: ${redemption_value_per_token:,.2f}\n"
-            f"  Total Value per Token: ${total_value_per_token:,.2f}\n"
-            f"  Years Remaining: {years_remaining:.2f}\n"
-            f"  IRR: {irr:.2f}%"
-        )
+        # Only log if IRR has changed significantly
+        if self.last_irr_value is None or abs(irr - self.last_irr_value) > 0.0001:
+            logging.debug("\nIRR Calculation:")
+            logging.debug(f"  Total Value: ${total_value:,.2f}")
+            logging.debug(f"  Redemption Progress: {redemption_progress:.2%}")
+            logging.debug(f"  Redemption Value: ${redemption_value:,.2f}")
+            logging.debug(f"  Redemption Value per Token: ${redemption_value_per_token:,.2f}")
+            logging.debug(f"  Total Value per Token: ${total_value_per_token:,.2f}")
+            logging.debug(f"  Years Remaining: {years_remaining:.2f}")
+            logging.debug(f"  IRR: {irr:.2f}%")
+            self.last_irr_value = irr
         
         return redemption_value, irr
     
@@ -323,7 +323,7 @@ class OAKModel:
         
         # Only calculate IRR and check redemptions during redemption period
         if current_month >= self.config.redemption_start_month:
-            current_value, irr = self._calculate_monthly_metrics(current_month, value_per_oak)
+            current_value, irr = self._calculate_monthly_metrics(current_month, value_per_oak, current_leaf_price)
             
             # Check each deal for redemption eligibility
             for deal in self.config.deals:

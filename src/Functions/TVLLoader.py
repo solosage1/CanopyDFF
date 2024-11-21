@@ -46,30 +46,26 @@ class TVLLoader:
     def load_initial_contributions(self, deals: List[Deal]) -> List[TVLContribution]:
         """Load initial TVL contributions from deals."""
         contributions = []
+        contribution_count = 0
+        
         for deal in deals:
             if deal.tvl_amount > 0 and deal.tvl_type != 'none':
                 end_month = deal.start_month + deal.tvl_duration_months
                 contribution = TVLContribution(
                     id=self.id_counter,
-                    tvl_type=deal.tvl_type,
+                    counterparty=deal.counterparty,
                     amount_usd=deal.tvl_amount,
                     revenue_rate=deal.tvl_revenue_rate,
-                    active=deal.tvl_active,
-                    end_month=end_month,
                     start_month=deal.start_month,
-                    counterparty=deal.counterparty
+                    end_month=end_month,
+                    tvl_type=deal.tvl_type,
+                    active=True
                 )
-                logging.debug(
-                    f"Creating TVL Contribution:"
-                    f"\n  ID: {self.id_counter}"
-                    f"\n  Type: {deal.tvl_type}"
-                    f"\n  Amount: ${deal.tvl_amount:,.2f}"
-                    f"\n  Start Month: {deal.start_month}"
-                    f"\n  End Month: {end_month}"
-                )
-                self.id_counter += 1
                 contributions.append(contribution)
-        logging.info(f"Loaded {len(contributions)} initial TVL contributions")
+                self.id_counter += 1
+                contribution_count += 1
+        
+        logging.debug(f"Loaded {contribution_count} initial TVL contributions")
         return contributions
     
     def _add_organic_contribution(self, source_contribution: TVLContribution) -> None:
