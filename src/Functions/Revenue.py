@@ -1,94 +1,73 @@
 from dataclasses import dataclass
 from typing import Dict, List, Optional
-from src.Data.deal import Deal, get_active_deals
+from src.Functions.TVL import TVLModel
 from src.Functions.TVLContributions import TVLContribution
+import logging
+
+@dataclass
+class RevenueModelConfig:
+    """Configuration for Revenue model."""
+    base_revenue_rate: float = 0.02
+    revenue_rates: Dict[str, float] = None
+    
+    def __post_init__(self):
+        if self.revenue_rates is None:
+            self.revenue_rates = {
+                'ProtocolLocked': 0.04,
+                'Contracted': 0.025,
+                'Organic': 0.02,
+                'Boosted': 0.03
+            }
 
 class RevenueModel:
-    """Model for calculating protocol revenue from TVL contributions."""
-    
-    def __init__(self):
+    def __init__(self, config: RevenueModelConfig, tvl_model: TVLModel):
+        self.config = config
+        self.tvl_model = tvl_model
         self.cumulative_revenue = 0.0
         self.revenue_history: Dict[int, Dict[str, float]] = {}
         
-    def calculate_revenue_from_deals(self, deals: List[Deal], month: int) -> Dict[str, float]:
-        """
-        Calculate monthly revenue from active deals.
-        
-        Args:
-            deals: List of all deals
-            month: Current month
-            
-        Returns:
-            Dictionary of revenue by category (ProtocolLocked, Contracted, Organic, Boosted)
-        """
-        revenue_by_category = {
+        logging.debug(
+            f"Initializing Revenue Model:"
+            f"\n  Base Rate: {config.base_revenue_rate:.2%}"
+            f"\n  Revenue Rates: {config.revenue_rates}"
+        )
+    
+    def calculate_monthly_revenue(self, contributions: List[TVLContribution], month: int) -> Dict[str, float]:
+        """Calculate monthly revenue from TVL contributions."""
+        return self.calculate_revenue(contributions, month)
+    
+    def calculate_revenue(self, contributions: List[TVLContribution], month: int) -> Dict[str, float]:
+        """Calculate monthly revenue from TVL contributions."""
+        revenue_by_type = {
             'ProtocolLocked': 0.0,
             'Contracted': 0.0,
             'Organic': 0.0,
             'Boosted': 0.0
         }
         
-        active_deals = get_active_deals(deals, month)
-        
-        for deal in active_deals:
-            if deal.tvl_category == "none":
+        for contribution in contributions:
+            if not contribution.active:
                 continue
                 
-            # Calculate revenue based on TVL amount and revenue rate
-            monthly_revenue = deal.tvl_amount * deal.tvl_revenue_rate / 12
+            if month < contribution.start_month or (contribution.end_month and month >= contribution.end_month):
+                continue
             
-            # Determine revenue category based on deal type
-            if deal.linear_ramp_months > 0:
-                # For ramped deals, calculate the ramp progress
-                ramp_progress = min(1.0, (month - deal.start_month) / deal.linear_ramp_months)
-                monthly_revenue *= ramp_progress
-                revenue_by_category['Contracted'] += monthly_revenue
-            elif deal.oak_amount > 0:
-                # Deals with OAK incentives are considered Boosted
-                revenue_by_category['Boosted'] += monthly_revenue
-            elif deal.leaf_pair_amount > 0:
-                # LEAF pair deals are considered Protocol Locked
-                revenue_by_category['ProtocolLocked'] += monthly_revenue
-            else:
-                # All other TVL is considered Organic
-                revenue_by_category['Organic'] += monthly_revenue
-        
-        # Store revenue history
-        self.revenue_history[month] = revenue_by_category.copy()
-        
-        return revenue_by_category
-    
-    def calculate_revenue_from_contributions(self, contributions: List[TVLContribution], month: int) -> Dict[str, float]:
-        """
-        Calculate monthly revenue from TVL contributions (legacy support).
-        
-        Args:
-            contributions: List of TVL contributions
-            month: Current month
+            revenue = contribution.calculate_revenue()
+            revenue_by_type[contribution.tvl_type] += revenue
             
-        Returns:
-            Dictionary of revenue by category
-        """
-        revenue_by_category = {
-            'ProtocolLocked': 0.0,
-            'Contracted': 0.0,
-            'Organic': 0.0,
-            'Boosted': 0.0
-        }
+            logging.debug(
+                f"Revenue from contribution {contribution.id}:"
+                f"\n  Type: {contribution.tvl_type}"
+                f"\n  Amount: ${contribution.amount_usd:,.2f}"
+                f"\n  Rate: {contribution.revenue_rate:.2%}"
+                f"\n  Revenue: ${revenue:,.2f}"
+            )
         
-        active_contributions = [
-            contrib for contrib in contributions 
-            if contrib.active and contrib.start_month <= month < contrib.end_month
-        ]
+        total_revenue = sum(revenue_by_type.values())
+        self.cumulative_revenue += total_revenue
+        self.revenue_history[month] = revenue_by_type.copy()
         
-        for contribution in active_contributions:
-            monthly_revenue = contribution.amount_usd * contribution.revenue_rate / 12
-            revenue_by_category[contribution.tvl_type] += monthly_revenue
-        
-        # Store revenue history
-        self.revenue_history[month] = revenue_by_category.copy()
-        
-        return revenue_by_category
+        return revenue_by_type
     
     def get_monthly_revenue(self, month: int) -> Optional[Dict[str, float]]:
         """Get revenue breakdown for a specific month."""

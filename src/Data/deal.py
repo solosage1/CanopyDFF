@@ -1,5 +1,6 @@
 from typing import List
 from dataclasses import dataclass
+import logging
 
 @dataclass
 class Deal:
@@ -14,12 +15,13 @@ class Deal:
     oak_vesting_months: int = 0
     oak_irr_threshold: float = 0.0
     oak_distributed_amount: float = 0.0
+    oak_revenue_multiple: float = 1.0
+    redeemed: bool = False
     
     # TVL Parameters
     tvl_amount: float = 0.0
     tvl_revenue_rate: float = 0.0
     tvl_duration_months: int = 0
-    tvl_category: str = "none"  # "none", "volatile", or "lending"
     tvl_type: str = "none"      # "ProtocolLocked", "Contracted", "Organic", or "Boosted"
     tvl_accumulated_revenue: float = 0.0
     tvl_active: bool = True
@@ -45,41 +47,125 @@ def generate_deal_id(counterparty: str, sequence: int) -> str:
 def initialize_deals() -> List[Deal]:
     """Initialize all protocol deals."""
     deals = []
-    deal_sequence = {}
     
-    def add_deal(counterparty: str, start_month: int, **kwargs):
-        """Helper function to add a deal with a unique deal_id."""
-        seq = deal_sequence.get(counterparty, 1)
-        deal_id = generate_deal_id(counterparty, seq)
-        deal_sequence[counterparty] = seq + 1
-        deal = Deal(deal_id=deal_id, counterparty=counterparty, start_month=start_month, **kwargs)
+    def add_deal(**kwargs):
+        """Helper function to add a deal with logging."""
+        # Generate deal_id if not provided
+        if 'deal_id' not in kwargs:
+            counterparty = kwargs.get('counterparty', 'Unknown')
+            start_month = kwargs.get('start_month', 0)
+            kwargs['deal_id'] = f"{counterparty[:10]}_{start_month:03d}"
+        
+        deal = Deal(**kwargs)
+        
+        # Log TVL deal OAK allocations
+        if deal.tvl_amount > 0 and deal.oak_amount > 0:
+            logging.info("\nTVL Deal OAK Allocation:")
+            logging.info(f"- Counterparty: {deal.counterparty}")
+            logging.info(f"- TVL Amount: ${deal.tvl_amount:,.2f}")
+            logging.info(f"- Annual Revenue Rate: {deal.tvl_revenue_rate:.1%}")
+            logging.info(f"- Expected Annual Revenue: ${deal.tvl_amount * deal.tvl_revenue_rate:,.2f}")
+            logging.info(f"- OAK Amount: {deal.oak_amount:,.2f}")
+            logging.info(f"- Revenue Multiple: {deal.oak_revenue_multiple:.1f}x")
+            logging.info(f"- IRR Threshold: {deal.oak_irr_threshold:.1%}")
+        
         deals.append(deal)
     
-    # 1. Initial TVL + OAK Incentive Deals
-    add_deal(
-        counterparty="AlphaTrading LLC",
-        start_month=0,
-        tvl_amount=20_000_000,
-        tvl_revenue_rate=0.04,
-        tvl_duration_months=12,
-        tvl_category="volatile",
-        tvl_type="Boosted",
-        oak_amount=800_000,
-        oak_vesting_months=12,
-        oak_irr_threshold=15.0
-    )
-    add_deal(
-        counterparty="BetaLend Finance",
-        start_month=0,
-        tvl_amount=80_000_000,
-        tvl_revenue_rate=0.005,
-        tvl_duration_months=12,
-        tvl_category="lending",
-        tvl_type="Boosted",
-        oak_amount=400_000,
-        oak_vesting_months=12,
-        oak_irr_threshold=15.0
-    )
+    # Initial Contracted TVL (~100M)
+    initial_contracts = [
+        {
+            "counterparty": "Sigma Capital",
+            "start_month": 1,
+            "tvl_amount": 60_000_000,
+            "tvl_revenue_rate": 0.035,  # 3.5% annually
+            "tvl_duration_months": 12,
+            "tvl_type": "Contracted"
+        },
+        {
+            "counterparty": "Tau Lending",
+            "start_month": 1,
+            "tvl_amount": 40_000_000,
+            "tvl_revenue_rate": 0.008,  # 0.8% annually
+            "tvl_duration_months": 12,
+            "tvl_type": "Contracted"
+        }
+    ]
+    
+    # Growth Phase Contracts (Ramping to ~500M)
+    growth_contracts = [
+        {
+            "counterparty": "Upsilon Ventures",
+            "start_month": 4,
+            "tvl_amount": 100_000_000,
+            "tvl_revenue_rate": 0.042,  # 4.2% annually
+            "tvl_duration_months": 12,
+            "tvl_type": "Contracted"
+        },
+        {
+            "counterparty": "Phi Finance",
+            "start_month": 6,
+            "tvl_amount": 150_000_000,
+            "tvl_revenue_rate": 0.015,  # 1.5% annually
+            "tvl_duration_months": 12,
+            "tvl_type": "Contracted"
+        },
+        {
+            "counterparty": "Chi Trading",
+            "start_month": 8,
+            "tvl_amount": 150_000_000,
+            "tvl_revenue_rate": 0.038,  # 3.8% annually
+            "tvl_duration_months": 12,
+            "tvl_type": "Contracted"
+        }
+    ]
+    
+    # Renewal Contracts (Maintaining ~300M)
+    renewal_contracts = [
+        {
+            "counterparty": "Sigma Capital",
+            "start_month": 13,
+            "tvl_amount": 45_000_000,  # 75% renewal
+            "tvl_revenue_rate": 0.032,  # 3.2% annually
+            "tvl_duration_months": 12,
+            "tvl_type": "Contracted"
+        },
+        {
+            "counterparty": "Tau Lending",
+            "start_month": 13,
+            "tvl_amount": 30_000_000,  # 75% renewal
+            "tvl_revenue_rate": 0.007,  # 0.7% annually
+            "tvl_duration_months": 12,
+            "tvl_type": "Contracted"
+        },
+        {
+            "counterparty": "Upsilon Ventures",
+            "start_month": 16,
+            "tvl_amount": 75_000_000,  # 75% renewal
+            "tvl_revenue_rate": 0.040,  # 4.0% annually
+            "tvl_duration_months": 12,
+            "tvl_type": "Contracted"
+        },
+        {
+            "counterparty": "Phi Finance",
+            "start_month": 18,
+            "tvl_amount": 100_000_000,  # ~67% renewal
+            "tvl_revenue_rate": 0.012,  # 1.2% annually
+            "tvl_duration_months": 12,
+            "tvl_type": "Contracted"
+        },
+        {
+            "counterparty": "Chi Trading",
+            "start_month": 20,
+            "tvl_amount": 50_000_000,  # ~33% renewal
+            "tvl_revenue_rate": 0.035,  # 3.5% annually
+            "tvl_duration_months": 12,
+            "tvl_type": "Contracted"
+        }
+    ]
+    
+    # Add all contracts
+    for contract in initial_contracts + growth_contracts + renewal_contracts:
+        add_deal(**contract)
     
     # 2. Team and Investor OAK Deals
     add_deal(
@@ -87,21 +173,21 @@ def initialize_deals() -> List[Deal]:
         start_month=3,
         oak_amount=175_000,
         oak_vesting_months=12,
-        oak_irr_threshold=10.0
+        oak_irr_threshold=25.0
     )
     add_deal(
         counterparty="Seed Investors",
         start_month=3,
         oak_amount=25_000,
         oak_vesting_months=12,
-        oak_irr_threshold=25.0
+        oak_irr_threshold=65.0
     )
     add_deal(
         counterparty="Advisors",
         start_month=3,
         oak_amount=25_000,
         oak_vesting_months=12,
-        oak_irr_threshold=15.0
+        oak_irr_threshold=45.0
     )
     
     # 3. LEAF Pair + TVL Deal
@@ -114,9 +200,8 @@ def initialize_deals() -> List[Deal]:
         leaf_max_concentration=0.8,
         leaf_duration_months=60,
         tvl_amount=1_500_000,
-        tvl_revenue_rate=0.02,
+        tvl_revenue_rate=0.10,
         tvl_duration_months=60,
-        tvl_category="volatile",
         tvl_type="ProtocolLocked"
     )
     
@@ -131,73 +216,6 @@ def initialize_deals() -> List[Deal]:
             oak_vesting_months=0,
             oak_irr_threshold=threshold
         )
-    
-    # 5. Ramp Schedule TVL Deals
-    ramp_schedule = [
-        {
-            "counterparty": "KappaFi Protocol",
-            "start_month": 1,
-            "tvl_amount": 43_000_000,
-            "tvl_revenue_rate": 0.04,
-            "tvl_duration_months": 12,
-            "tvl_category": "volatile",
-            "tvl_type": "Contracted",
-            "linear_ramp_months": 3
-        },
-        {
-            "counterparty": "LambdaVest",
-            "start_month": 1,
-            "tvl_amount": 57_000_000,
-            "tvl_revenue_rate": 0.005,
-            "tvl_duration_months": 12,
-            "tvl_category": "lending",
-            "tvl_type": "Contracted",
-            "linear_ramp_months": 3
-        },
-        {
-            "counterparty": "MuTrading Co",
-            "start_month": 2,
-            "tvl_amount": 44_000_000,
-            "tvl_revenue_rate": 0.04,
-            "tvl_duration_months": 12,
-            "tvl_category": "volatile",
-            "tvl_type": "Contracted",
-            "linear_ramp_months": 3
-        },
-        {
-            "counterparty": "NuLend Finance",
-            "start_month": 2,
-            "tvl_amount": 56_000_000,
-            "tvl_revenue_rate": 0.005,
-            "tvl_duration_months": 12,
-            "tvl_category": "lending",
-            "tvl_type": "Contracted",
-            "linear_ramp_months": 3
-        },
-        {
-            "counterparty": "OmegaX Capital",
-            "start_month": 3,
-            "tvl_amount": 43_000_000,
-            "tvl_revenue_rate": 0.04,
-            "tvl_duration_months": 12,
-            "tvl_category": "volatile",
-            "tvl_type": "Contracted",
-            "linear_ramp_months": 3
-        },
-        {
-            "counterparty": "PiVault Solutions",
-            "start_month": 3,
-            "tvl_amount": 57_000_000,
-            "tvl_revenue_rate": 0.005,
-            "tvl_duration_months": 12,
-            "tvl_category": "lending",
-            "tvl_type": "Contracted",
-            "linear_ramp_months": 3
-        }
-    ]
-    
-    for ramp in ramp_schedule:
-        add_deal(**ramp)
     
     return deals
 
@@ -216,7 +234,7 @@ def get_active_deals(deals: List[Deal], month: int) -> List[Deal]:
             is_active = True
         
         # Check TVL Activity
-        if deal.tvl_category != "none":
+        if deal.tvl_type != "none":
             if deal.start_month <= month < (deal.start_month + deal.tvl_duration_months):
                 is_active = True
         

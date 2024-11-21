@@ -3,14 +3,14 @@ from typing import List, Dict, Tuple
 from collections import defaultdict
 from .UniswapV2Math import UniswapV2Math
 from src.Data.deal import Deal
+import logging
 
 @dataclass
 class AEGISConfig:
     """Configuration for AEGIS model."""
-    initial_leaf_balance: float
-    initial_usdc_balance: float
-    leaf_price_decay_rate: float
-    max_months: int
+    initial_leaf_balance: float = 1_000_000_000  # 1 billion LEAF
+    initial_usdc_balance: float = 100_000        # 100k USDC
+    max_months: int = 60
     oak_to_usdc_rate: float = 1.0
     oak_to_leaf_rate: float = 1.0
 
@@ -67,15 +67,8 @@ class AEGISModel:
         
         return leaf_to_redeem, usdc_to_redeem
         
-    def apply_market_decay(self):
-        """Apply price decay based on configured rate"""
-        self.leaf_price *= (1 - self.config.leaf_price_decay_rate)
-        
     def step(self, month: int):
         """Execute one month's worth of updates"""
-        # Apply market decay
-        self.apply_market_decay()
-        
         # Record state
         self.leaf_balance_history[month] = self.leaf_balance
         self.usdc_balance_history[month] = self.usdc_balance
@@ -116,3 +109,19 @@ class AEGISModel:
         # Ensure balances don't go negative
         self.usdc_balance = max(0, self.usdc_balance)
         self.leaf_balance = max(0, self.leaf_balance)
+
+    def sell_leaf(self, leaf_amount: float, current_price: float) -> Tuple[float, float]:
+        """Sell LEAF tokens at current price. Returns (leaf_sold, usdc_received)."""
+        if leaf_amount <= 0:
+            return 0.0, 0.0
+            
+        if leaf_amount > self.leaf_balance:
+            logging.warning(f"Requested to sell {leaf_amount:,.2f} LEAF but only have {self.leaf_balance:,.2f}")
+            leaf_amount = self.leaf_balance
+            
+        usdc_received = leaf_amount * current_price
+        self.leaf_balance -= leaf_amount
+        self.usdc_balance += usdc_received
+        
+        logging.info(f"AEGIS sold {leaf_amount:,.2f} LEAF for {usdc_received:,.2f} USDC")
+        return leaf_amount, usdc_received

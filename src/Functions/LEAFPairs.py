@@ -3,6 +3,7 @@ from typing import List, Dict, Tuple
 from collections import defaultdict
 from .UniswapV2Math import UniswapV2Math
 from src.Data.deal import Deal
+import logging
 
 @dataclass
 class LEAFPairsConfig:
@@ -25,13 +26,57 @@ class LEAFPairsModel:
             deal.leaf_balance = deal.num_leaf_tokens
             deal.other_balance = deal.leaf_pair_amount - leaf_investment
 
-    def update_deals(self, month: int, leaf_price: float):
-        """Update active deals for the given month."""
+    def update_deals(self, month: int, leaf_price: float) -> float:
+        """Update active deals for the given month. Returns LEAF tokens to buy."""
+        self.month = month
         active_deals = self.get_active_deals(month)
-        for deal in active_deals:
-            # Placeholder for deal update logic
-            pass  # Implement the logic as needed
+        
+        # Calculate LEAF needed to reach target ratios
+        leaf_needed = self.calculate_leaf_needed(leaf_price)
+        
+        # Record state
         self._record_state(month)
+        
+        return leaf_needed
+
+    def calculate_leaf_needed(self, current_price: float) -> Tuple[Dict[str, float], float]:
+        """Calculate how many LEAF tokens need to be bought to reach target ratios.
+        Returns (deal_deficits, total_needed) where deal_deficits maps deal ID to LEAF needed."""
+        active_deals = self.get_active_deals(self.month)
+        deal_deficits: Dict[str, float] = {}
+        total_leaf_short = 0.0
+        
+        for deal in active_deals:
+            # Calculate current and target LEAF value
+            total_value = (deal.leaf_balance * current_price) + deal.other_balance
+            current_leaf_value = deal.leaf_balance * current_price
+            target_leaf_value = total_value * deal.leaf_percentage
+            
+            # Calculate shortage
+            if current_leaf_value < target_leaf_value:
+                leaf_short = (target_leaf_value - current_leaf_value) / current_price
+                deal_deficits[deal.deal_id] = leaf_short
+                total_leaf_short += leaf_short
+        
+        return deal_deficits, total_leaf_short
+
+    def distribute_purchased_leaf(self, leaf_amount: float, deal_deficits: Dict[str, float]) -> None:
+        """Distribute purchased LEAF to deals proportionally to their deficits."""
+        total_deficit = sum(deal_deficits.values())
+        if total_deficit == 0:
+            return
+
+        for deal_id, deficit in deal_deficits.items():
+            # Find the deal
+            deal = next(d for d in self.deals if d.deal_id == deal_id)
+            
+            # Calculate proportion of LEAF to give this deal
+            proportion = deficit / total_deficit
+            leaf_to_add = leaf_amount * proportion
+            
+            # Update deal balances
+            deal.leaf_balance += leaf_to_add
+            logging.info(f"Deal {deal_id} received {leaf_to_add:,.2f} LEAF")
 
     def get_active_deals(self, month: int) -> List[Deal]:
         """Return deals that are active in the given month."""
@@ -85,18 +130,27 @@ class LEAFPairsModel:
         
         for deal in active_deals:
             if deal.leaf_balance == 0:
+                # USDC-only pool: Use max concentration (8x)
+                usdc_concentration = deal.leaf_max_concentration * 10  # 0.8 * 10 = 8x UniswapV2
+                usdc_in_range = (deal.other_balance * percentage / 100.0) * usdc_concentration
+                total_other_within_range += usdc_in_range
                 continue
-                
-            # Calculate current LEAF ratio
+            
+            # Calculate current LEAF ratio vs target
             total_value = (deal.leaf_balance * current_price) + deal.other_balance
             current_leaf_ratio = (deal.leaf_balance * current_price) / total_value
+            target_ratio = deal.leaf_percentage
             
-            # Set concentration levels based on LEAF ratio vs target
-            leaf_heavy = current_leaf_ratio > deal.leaf_percentage
-            
-            # Get concentrations
-            leaf_concentration = deal.leaf_base_concentration * 10 if leaf_heavy else 1.0
-            other_concentration = 1.0 if leaf_heavy else deal.leaf_base_concentration * 10
+            # Determine concentration based on LEAF balance health
+            if current_leaf_ratio < target_ratio * 0.9:  # Low on LEAF
+                leaf_concentration = 1.0  # UniswapV2 base
+                other_concentration = deal.leaf_max_concentration * 10  # 8x for USDC
+            elif current_leaf_ratio > target_ratio * 1.1:  # Too much LEAF
+                leaf_concentration = deal.leaf_max_concentration * 10  # 8x for LEAF
+                other_concentration = 1.0  # UniswapV2 base for USDC
+            else:  # Healthy balance
+                leaf_concentration = deal.leaf_base_concentration * 10  # 5x for both
+                other_concentration = deal.leaf_base_concentration * 10  # 5x for both
             
             # Calculate liquidity using shared math
             leaf_amount, other_amount = UniswapV2Math.get_liquidity_within_range(
@@ -122,3 +176,26 @@ class LEAFPairsModel:
         """Get the total USD value in active liquidity pairs."""
         active_deals = self.get_active_deals(self.month)
         return sum(deal.other_balance for deal in active_deals)
+
+    def get_state(self) -> Dict:
+        """Get current state of LEAF pairs model."""
+        active_deals = self.get_active_deals(self.month)
+        return {
+            'total_leaf': sum(deal.leaf_balance for deal in active_deals),
+            'total_usd': sum(deal.other_balance for deal in active_deals),
+            'active_deals': len(active_deals),
+            'balance_history': dict(self.balance_history)
+        }
+
+    def step(self, month: int) -> None:
+        """Process one time step in the LEAF pairs model."""
+        self.month = month
+        active_deals = self.get_active_deals(month)
+        
+        # Record state for this month
+        self._record_state(month)
+        
+        logging.debug(f"\nMonth {month} LEAF Pairs:")
+        logging.debug(f"- Active Deals: {len(active_deals)}")
+        logging.debug(f"- Total LEAF: {self.get_leaf_liquidity():,.2f}")
+        logging.debug(f"- Total USD: ${self.get_usd_liquidity():,.2f}")

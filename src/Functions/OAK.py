@@ -13,225 +13,172 @@ from src.Functions.TVLContributions import TVLContribution
 class OAKDistributionConfig:
     """Configuration for OAK distribution model."""
     total_oak_supply: float = 500_000
-    redemption_start_month: int = 12  # Global start month for any redemptions
+    redemption_start_month: int = 3   # Global start month for any redemptions
     redemption_end_month: int = 48    # After this, max redemption for unlocked tokens
     deals: List[Deal] = field(default_factory=list)
 
 class OAKModel:
     """Model for simulating OAK token distribution and redemption."""
     
-    def __init__(self, config: OAKDistributionConfig):
+    def __init__(self, config: OAKDistributionConfig, aegis_model: AEGISModel):
         self.config = config
+        self.aegis_model = aegis_model  # Store AEGIS model reference
         self.current_month = 0
-        self.remaining_oak_supply = config.total_oak_supply
+        
+        # All OAK are minted at initialization
+        self.total_oak_supply = config.total_oak_supply
+        self.allocated_oak = sum(deal.oak_amount for deal in config.deals)  # Total allocated to deals
+        self.distributed_oak = 0  # Actually distributed to counterparties
+        self.redeemed_oak = 0  # Redeemed from supply
+        self.remaining_oak_supply = self.total_oak_supply
+        
+        # Tracking histories
         self.oak_supply_history = {}
         self.redemption_history = {}
         self.distribution_history = {}
-        self.distributed_amounts = defaultdict(float)  # Use defaultdict for automatic 0 initialization
+        self.distributed_amounts = defaultdict(float)
         
-        # Configure logging
-        self.logger = logging.getLogger(f"{__name__}.OAKModel")
-        if not self.logger.handlers:  # Only add handler if none exists
-            handler = logging.StreamHandler()
-            formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-            handler.setFormatter(formatter)
-            self.logger.addHandler(handler)
-            self.logger.setLevel(logging.DEBUG)
+        # Initialize logging state tracking
+        self._last_logged_values = {
+            'total_value': None,
+            'irr': None,
+            'month': None
+        }
         
-        self.logger.debug("Initialized OAKModel")
+        # Configure logger
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.DEBUG)  # Set to DEBUG to capture all messages
+        self.logger.propagate = True  # Ensure messages propagate to root logger
+        
+        # Log initial state
+        self.logger.info("\n=== Starting OAK Model ===")
+        self.logger.info(f"Total Supply: {self.total_oak_supply:,.2f}")
+        self.logger.info(f"Allocated to Deals: {self.allocated_oak:,.2f}")
+        
+        # Validate total allocations don't exceed supply
+        if self.allocated_oak > self.total_oak_supply:
+            raise ValueError(f"Total allocated OAK ({self.allocated_oak}) exceeds supply ({self.total_oak_supply})")
+        
+        # Calculate total redemption period length
+        self.redemption_period_months = config.redemption_end_month - config.redemption_start_month
+    
+    def _should_log_changes(self, value_per_oak: float, irr: float) -> bool:
+        """Determine if changes are significant enough to log."""
+        return (
+            self._last_logged_values['total_value'] is None or
+            abs(value_per_oak - self._last_logged_values['total_value']) > 0.01 or
+            self._last_logged_values['irr'] is None or
+            abs(irr - self._last_logged_values['irr']) > 1.0
+        )
+    
+    def _log_monthly_status(self, month: int, value_per_oak: float, irr: float = None):
+        """Log monthly status if significant changes occurred."""
+        if irr is not None and self._should_log_changes(value_per_oak, irr):
+            self.logger.info(f"\n=== Month {month} Status ===")
+            self.logger.info(f"Value per OAK: ${value_per_oak:,.2f}")
+            self.logger.info(f"Expected IRR: {irr:.1f}%")
+            self._log_redemption_status(irr)
+            
+            self._last_logged_values.update({
+                'total_value': value_per_oak,
+                'irr': irr,
+                'month': month
+            })
+    
+    def _log_redemption_status(self, irr: float):
+        """Log redemption eligibility for each deal and process redemptions."""
+        if irr == float('-inf'):
+            self.logger.info("IRR calculation not possible - likely zero current value")
+            return
+            
+        self.logger.info("\nRedemption Status:")
+        for deal in self.config.deals:
+            if deal.oak_distributed_amount > 0:
+                is_eligible = irr < deal.oak_irr_threshold
+                status = "ELIGIBLE" if is_eligible else "NOT ELIGIBLE"
+                self.logger.info(
+                    f"  {deal.counterparty}: {status} "
+                    f"(IRR: {irr:.1f}% vs threshold: {deal.oak_irr_threshold:.1f}%)"
+                )
+                
+                # Process redemption if eligible
+                if is_eligible and not deal.redeemed:
+                    self.redeem_oak(deal.oak_distributed_amount)
+                    deal.redeemed = True  # Mark as redeemed to prevent double redemption
     
     def calculate_expected_irr(self, current_value: float, future_value: float, years_to_end: float) -> float:
-        """
-        Calculate the expected IRR based on current and future values over the remaining years.
-        
-        Args:
-            current_value: The present value based on redemption progress.
-            future_value: The full value at the end of the redemption period.
-            years_to_end: The remaining time in years until redemption end.
-        
-        Returns:
-            Expected annualized IRR as a percentage.
-        """
+        """Calculate the expected IRR based on current and future values."""
         try:
+            if current_value <= 0 or years_to_end <= 0:
+                return float('-inf')
             expected_irr = ((future_value / current_value) ** (1 / years_to_end) - 1) * 100
             return expected_irr
         except (ValueError, ZeroDivisionError) as e:
             self.logger.error(f"Error calculating IRR: {e}")
-            return -float('inf')  # Assign a very low IRR to trigger redemption
+            return float('-inf')
         
-    def calculate_value_per_oak(
-        self,
-        aegis_usdc: float,
-        aegis_leaf: float,
-        current_leaf_price: float,
-        total_oak: float
-    ) -> float:
-        """
-        Calculate the current value per OAK token.
-        
-        Args:
-            aegis_usdc: Total USDC in AEGIS
-            aegis_leaf: Total LEAF in AEGIS
-            current_leaf_price: Current LEAF price
-            total_oak: Total unredeemed OAK tokens
-            
-        Returns:
-            float: Value per OAK token. Returns 0 if no OAK tokens exist.
-        """
+    def calculate_value_per_oak(self, aegis_usdc: float, aegis_leaf: float, 
+                                current_leaf_price: float) -> float:
+        """Calculate the current value per unredeemed OAK token."""
         total_value = aegis_usdc + (aegis_leaf * current_leaf_price)
-        return total_value / total_oak if total_oak > 0 else 0
+        unredeemed = self.total_oak_supply - self.redeemed_oak
         
-    def step(
-        self, 
-        current_month: int,
-        aegis_usdc: float,
-        aegis_leaf: float,
-        current_leaf_price: float,
-        aegis_model: AEGISModel
-    ) -> Tuple[float, float, float, float, float]:
-        """Process monthly OAK distributions and redemptions."""
-        self.current_month = current_month
-        total_value = aegis_usdc + (aegis_leaf * current_leaf_price)
-        self.logger.debug(f"Processing Month {current_month}: Total Value = ${total_value:.2f}")
+        if unredeemed <= 0:
+            return 0.0
         
-        # Process distributions first
-        distributions = self.process_monthly_distributions(current_month)
+        value_per_oak = total_value / unredeemed
         
-        # Calculate total unredeemed OAK
-        total_oak_before = sum(deal.oak_distributed_amount for deal in self.config.deals)
-        self.logger.debug(f"Total OAK before redemption: {total_oak_before}")
-        
-        # Calculate value per OAK
-        value_per_oak = self.calculate_value_per_oak(
-            aegis_usdc=aegis_usdc,
-            aegis_leaf=aegis_leaf,
-            current_leaf_price=current_leaf_price,
-            total_oak=total_oak_before
+        self.logger.debug(
+            f"OAK Value Calculation:\n"
+            f"  Total Value: ${total_value:,.2f}\n"
+            f"  Unredeemed OAK: {unredeemed:,.2f}\n"
+            f"  Value per OAK: ${value_per_oak:,.2f}"
         )
         
-        # Process redemptions
-        total_redemption = 0.0
-        month_redemptions = {}
+        return value_per_oak
         
-        # Only process redemptions during redemption period
-        if current_month >= self.config.redemption_start_month:
-            # Calculate redemption progress
-            total_redemption_months = self.config.redemption_end_month - self.config.redemption_start_month
-            months_into_redemption = current_month - self.config.redemption_start_month
-            redemption_progress = min(1.0, max(0.0, months_into_redemption / total_redemption_months))
-            
-            for deal in self.config.deals:
-                if deal.oak_distributed_amount > 0:  # Check if deal has distributed OAK
-                    if total_oak_before > 0:
-                        current_value = value_per_oak * redemption_progress
-                        future_value = value_per_oak
-                        
-                        months_to_end = self.config.redemption_end_month - current_month
-                        years_to_end = months_to_end / 12
-                        
-                        if current_value > 0 and years_to_end > 0:
-                            expected_irr = self.calculate_expected_irr(current_value, future_value, years_to_end)
-                            self.logger.debug(f"Expected IRR for {deal.counterparty}: {expected_irr:.2f}% vs Threshold: {deal.oak_irr_threshold}%")
-                            
-                            if expected_irr < deal.oak_irr_threshold:
-                                redemption = deal.oak_distributed_amount
-                                total_redemption += redemption
-                                month_redemptions[deal.counterparty] = redemption
-                                deal.oak_distributed_amount = 0
-                                self.logger.info(f"Redeeming {redemption:.0f} OAK from {deal.counterparty}")
+    def _calculate_monthly_metrics(self, month: int, value_per_oak: float) -> Tuple[float, float]:
+        """Calculate current value and IRR metrics."""
+        # Calculate total AEGIS value
+        total_value = (self.aegis_model.usdc_balance + 
+                      (self.aegis_model.leaf_balance * value_per_oak))
         
-        # Update remaining supply and history
-        self.remaining_oak_supply = total_oak_before - total_redemption
-        self.oak_supply_history[current_month] = self.remaining_oak_supply
+        # Calculate redemption progress (linear from start to end month)
+        if month < self.config.redemption_start_month:
+            redemption_progress = 0.0
+        elif month > self.config.redemption_end_month:
+            redemption_progress = 1.0
+        else:
+            redemption_progress = (month - self.config.redemption_start_month) / self.redemption_period_months
         
-        if month_redemptions:
-            self.redemption_history[current_month] = month_redemptions
+        # Calculate current (redemption) value and future (total) value per token
+        unredeemed_tokens = self.total_oak_supply - self.redeemed_oak
+        if unredeemed_tokens <= 0:
+            return 0.0, float('-inf')
         
-        # Calculate proportional redemptions
-        usdc_redemption = aegis_usdc * (total_redemption / total_oak_before) if total_oak_before > 0 else 0
-        leaf_redemption = aegis_leaf * (total_redemption / total_oak_before) if total_oak_before > 0 else 0
+        # Calculate redemption value (current value) and total value (future value)
+        redemption_value = total_value * redemption_progress
+        redemption_value_per_token = redemption_value / unredeemed_tokens
+        total_value_per_token = total_value / unredeemed_tokens
         
-        # Update AEGIS balances and handle redemptions
-        if total_redemption > 0:
-            aegis_model.update_balances(
-                usdc_change=-usdc_redemption,
-                leaf_change=-leaf_redemption
-            )
-            self.logger.info(
-                f"Month {current_month}: "
-                f"Redeemed {total_redemption:,.2f} OAK, "
-                f"USDC: ${usdc_redemption:,.2f}, "
-                f"LEAF: {leaf_redemption:,.2f} @ ${current_leaf_price:.2f}"
-            )
-            print(f"\nOAK Redemptions:")
-            print(f"- Amount: {total_redemption:,.2f} OAK")
-            print(f"- USDC: ${usdc_redemption:,.2f}")
-            print(f"- LEAF: {leaf_redemption:,.2f} @ ${current_leaf_price:.2f}")
-            print(f"- Total Value: ${(usdc_redemption + leaf_redemption * current_leaf_price):,.2f}")
+        # Calculate years remaining for IRR calculation
+        years_remaining = max((self.config.redemption_end_month - month) / 12, 0.0001)
         
-        # Update AEGIS model
-        if current_month >= self.config.redemption_start_month and total_oak_before > 0:
-            redemption_rate = total_redemption / total_oak_before if total_oak_before > 0 else 0
-            self.logger.debug(f"Redemption rate for month {current_month}: {redemption_rate:.4f}")
-            aegis_model.handle_redemptions(current_month, redemption_rate)
-            aegis_model.step(current_month)
+        # Calculate IRR using redemption value as current value and total value as future value
+        irr = self.calculate_expected_irr(redemption_value_per_token, total_value_per_token, years_remaining)
         
-        self.logger.debug(f"Step {current_month} completed.")
-        
-        return (
-            total_redemption,
-            total_oak_before,
-            self.remaining_oak_supply,
-            usdc_redemption,
-            leaf_redemption
+        self.logger.debug(
+            f"\nIRR Calculation:\n"
+            f"  Total Value: ${total_value:,.2f}\n"
+            f"  Redemption Progress: {redemption_progress:.2%}\n"
+            f"  Redemption Value: ${redemption_value:,.2f}\n"
+            f"  Redemption Value per Token: ${redemption_value_per_token:,.2f}\n"
+            f"  Total Value per Token: ${total_value_per_token:,.2f}\n"
+            f"  Years Remaining: {years_remaining:.2f}\n"
+            f"  IRR: {irr:.2f}%"
         )
-       
-    def process_monthly_distributions(self, current_month: int) -> Dict[str, float]:
-        """Process monthly distributions for all deals."""
-        distributions = {}
         
-        for deal in self.config.deals:
-            # Only check vesting completion, not redemption period
-            vesting_complete = current_month >= (deal.start_month + deal.oak_vesting_months)
-            
-            if (deal.oak_amount > 0 and  # Has OAK to distribute
-                current_month >= deal.start_month and  # Has started
-                not any(month <= current_month and deal.counterparty in dist  # Hasn't distributed yet
-                       for month, dist in self.distribution_history.items())):
-                    
-                amount_to_distribute = deal.oak_amount
-                deal.oak_distributed_amount = amount_to_distribute
-                deal.oak_amount = 0
-                
-                distributions[deal.counterparty] = amount_to_distribute
-                self.logger.debug(
-                    f"Month {current_month}: Cliff distribution of "
-                    f"{amount_to_distribute:,.2f} OAK to {deal.counterparty}"
-                )
-        
-        if distributions:
-            self.distribution_history[current_month] = distributions.copy()
-        
-        return distributions
-    
-    def get_best_case_irr(
-        self, 
-        current_value: float, 
-        future_value: float, 
-        years_to_end: float
-    ) -> float:
-        """
-        Calculate the best-case IRR based on current and future values.
-        
-        Args:
-            current_value: Present value based on redemption progress.
-            future_value: Full value at the end of redemption.
-            years_to_end: Remaining time in years until redemption end.
-        
-        Returns:
-            Best-case annualized IRR as a percentage.
-        """
-        return self.calculate_expected_irr(current_value, future_value, years_to_end)
+        return redemption_value, irr
     
     def get_state(self) -> Dict[str, any]:
         """Retrieve the current state of the OAKModel."""
@@ -262,9 +209,148 @@ class OAKModel:
     
     def get_total_distributed_oak(self) -> float:
         """
-        Get the total amount of OAK distributed so far.
+        Get the total amount of OAK distributed up to the current month.
         
         Returns:
-            float: Total distributed OAK
+            float: Cumulative distributed OAK
         """
-        return self.distributed_amounts[self.current_month]
+        return sum(amount for month, amount in self.distributed_amounts.items() if month <= self.current_month)
+    
+    def calculate_redemption_value(self, oak_amount: float, current_leaf_price: float) -> Dict[str, float]:
+        """Calculate redemption value based on AEGIS balances."""
+        oak_share = oak_amount / self.config.total_oak_supply
+        
+        usdc_value = self.aegis_model.usdc_balance * oak_share
+        leaf_amount = self.aegis_model.leaf_balance * oak_share
+        leaf_value = leaf_amount * current_leaf_price
+        total_value = usdc_value + leaf_value
+        
+        self.logger.debug(f"\nOAK Redemption Calculation:")
+        self.logger.debug(f"- OAK Amount: {oak_amount:,.2f}")
+        self.logger.debug(f"- OAK Share: {oak_share:.4%}")
+        self.logger.debug(f"- USDC Value: ${usdc_value:,.2f}")
+        self.logger.debug(f"- LEAF Amount: {leaf_amount:,.2f}")
+        self.logger.debug(f"- LEAF Value: ${leaf_value:,.2f}")
+        self.logger.debug(f"- Total Value: ${total_value:,.2f}")
+        
+        return {
+            'usdc_value': usdc_value,
+            'leaf_amount': leaf_amount,
+            'total_value': total_value
+        }
+    
+    def redeem_oak(self, oak_amount: float) -> None:
+        """Redeem OAK tokens from supply."""
+        unredeemed_supply = self.total_oak_supply - self.redeemed_oak
+        if oak_amount > unredeemed_supply:
+            self.logger.warning(
+                f"Attempting to redeem {oak_amount:,.2f} OAK, but only "
+                f"{unredeemed_supply:,.2f} unredeemed available."
+            )
+            oak_amount = unredeemed_supply
+        
+        self.redeemed_oak += oak_amount
+        self.logger.info(
+            f"Redeemed {oak_amount:,.2f} OAK. "
+            f"Total redeemed: {self.redeemed_oak:,.2f}, "
+            f"Remaining unredeemed: {self.total_oak_supply - self.redeemed_oak:,.2f}"
+        )
+    
+    def process_monthly_distributions(self, month: int) -> Dict[str, float]:
+        """Process monthly OAK distributions."""
+        distributions = {}
+        month_distributed = 0.0
+        
+        for deal in self.config.deals:
+            if self._should_distribute(deal, month):
+                # Distribute full amount at once
+                amount = deal.oak_amount  # Changed from monthly_amount to full amount
+                deal.oak_distributed_amount = amount
+                month_distributed += amount
+                distributions[deal.counterparty] = amount
+                
+                self.logger.debug(
+                    f"Distributing {amount:,.2f} OAK to {deal.counterparty} "
+                    f"({deal.oak_distributed_amount:,.2f}/{deal.oak_amount:,.2f})"
+                )
+        
+        if distributions:
+            self.distribution_history[month] = distributions
+            self.distributed_amounts[month] = month_distributed
+            self.distributed_oak += month_distributed
+            
+            self.logger.info(f"Total OAK distributed this month: {month_distributed:,.2f}")
+        
+        return distributions
+    
+    def _should_distribute(self, deal: Deal, month: int) -> bool:
+        """
+        Determine if a deal should receive OAK distribution this month.
+        
+        Args:
+            deal: The deal to check
+            month: Current month
+            
+        Returns:
+            bool: True if deal should receive distribution
+        """
+        # Check if deal has started
+        if month < deal.start_month:
+            return False
+            
+        # Check if deal has already received distribution
+        if deal.oak_distributed_amount >= deal.oak_amount:
+            return False
+            
+        # Check if vesting period is complete
+        months_vesting = month - deal.start_month + 1  # +1 to include the starting month
+        if months_vesting == deal.oak_vesting_months:  # Changed from > to ==
+            return True
+            
+        return False
+    
+    def step(self, current_month: int, aegis_usdc: float, aegis_leaf: float, 
+             current_leaf_price: float, aegis_model: AEGISModel) -> None:
+        """Process a single month step in the model."""
+        self.current_month = current_month
+        self.logger.info(f"\n=== Month {current_month} ===")
+        
+        # Process distributions first
+        distributions = self.process_monthly_distributions(current_month)
+        
+        # Calculate value metrics
+        value_per_oak = self.calculate_value_per_oak(aegis_usdc, aegis_leaf, current_leaf_price)
+        
+        # Only calculate IRR and check redemptions during redemption period
+        if current_month >= self.config.redemption_start_month:
+            current_value, irr = self._calculate_monthly_metrics(current_month, value_per_oak)
+            
+            # Check each deal for redemption eligibility
+            for deal in self.config.deals:
+                if deal.oak_distributed_amount > 0 and not deal.redeemed:
+                    if irr < deal.oak_irr_threshold:
+                        self.logger.info(
+                            f"\nRedemption triggered for {deal.counterparty}:"
+                            f"\n  IRR: {irr:.1f}% < Threshold: {deal.oak_irr_threshold:.1f}%"
+                            f"\n  Amount: {deal.oak_distributed_amount:,.2f} OAK"
+                        )
+                        self.redeem_oak(deal.oak_distributed_amount)
+                        deal.redeemed = True
+            
+            # Log status
+            self._log_monthly_status(current_month, value_per_oak, irr)
+    
+    def calculate_weighted_avg_irr_threshold(self) -> float:
+        """Calculate weighted average IRR threshold based on OAK distribution amounts."""
+        total_distributed = self.get_total_distributed_oak()
+        if total_distributed == 0:
+            return 0.0
+        
+        weighted_sum = sum(
+            deal.oak_distributed_amount * deal.oak_irr_threshold 
+            for deal in self.config.deals
+        )
+        weighted_avg = weighted_sum / total_distributed
+        
+        # Ensure minimum threshold is 0
+        return max(0.0, weighted_avg)

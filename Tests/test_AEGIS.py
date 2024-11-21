@@ -15,8 +15,7 @@ class TestAEGISModel(unittest.TestCase):
         """Initialize test environment."""
         self.config = AEGISConfig(
             initial_leaf_balance=1_000_000_000,
-            initial_usdc_balance=500_000,
-            leaf_price_decay_rate=0.005,
+            initial_usdc_balance=100_000,
             max_months=60,
             oak_to_usdc_rate=1.0,
             oak_to_leaf_rate=1.0
@@ -28,14 +27,14 @@ class TestAEGISModel(unittest.TestCase):
         """Test initial state of AEGIS model."""
         state = self.aegis_model.get_state()
         self.assertEqual(state['leaf_balance'], 1_000_000_000)
-        self.assertEqual(state['usdc_balance'], 500_000)
+        self.assertEqual(state['usdc_balance'], 100_000)
         self.assertEqual(state['leaf_price'], 1.0)
         self.assertEqual(state['oak_to_usdc_rate'], 1.0)
         self.assertEqual(state['oak_to_leaf_rate'], 1.0)
         
         # Test initial history
         self.assertEqual(self.aegis_model.leaf_balance_history[0], 1_000_000_000)
-        self.assertEqual(self.aegis_model.usdc_balance_history[0], 500_000)
+        self.assertEqual(self.aegis_model.usdc_balance_history[0], 100_000)
         self.assertEqual(self.aegis_model.leaf_price_history[0], 1.0)
 
     def test_redemption_mechanics(self):
@@ -58,23 +57,8 @@ class TestAEGISModel(unittest.TestCase):
         # Test redemption history tracking
         self.assertEqual(self.aegis_model.redemption_history[month], redemption_rate)
 
-    def test_market_decay(self):
-        """Test price decay mechanics."""
-        initial_price = self.aegis_model.leaf_price
-        
-        # Test single decay step
-        self.aegis_model.apply_market_decay()
-        expected_price = initial_price * (1 - self.config.leaf_price_decay_rate)
-        self.assertAlmostEqual(self.aegis_model.leaf_price, expected_price)
-        
-        # Test multiple decay steps
-        for _ in range(3):
-            self.aegis_model.apply_market_decay()
-        expected_price *= (1 - self.config.leaf_price_decay_rate) ** 3
-        self.assertAlmostEqual(self.aegis_model.leaf_price, expected_price)
-
-    def test_monthly_step(self):
-        """Test monthly update process."""
+    def test_market_mechanics(self):
+        """Test market mechanics."""
         initial_price = self.aegis_model.leaf_price
         
         # Test multiple months
@@ -88,9 +72,26 @@ class TestAEGISModel(unittest.TestCase):
                            self.aegis_model.usdc_balance)
             self.assertEqual(len(self.aegis_model.leaf_price_history), month + 1)
             
-            # Verify price decay
-            expected_price = initial_price * (1 - self.config.leaf_price_decay_rate) ** month
-            self.assertAlmostEqual(self.aegis_model.leaf_price, expected_price)
+            # Price should remain stable without decay
+            self.assertEqual(self.aegis_model.leaf_price, initial_price)
+
+    def test_monthly_step(self):
+        """Test monthly update process."""
+        initial_price = self.aegis_model.leaf_price
+        initial_leaf = self.aegis_model.leaf_balance
+        initial_usdc = self.aegis_model.usdc_balance
+        
+        # Process several months
+        for month in range(1, 4):
+            self.aegis_model.step(month)
+            
+            # Verify balances are tracked
+            self.assertEqual(self.aegis_model.leaf_balance_history[month], initial_leaf)
+            self.assertEqual(self.aegis_model.usdc_balance_history[month], initial_usdc)
+            
+            # Verify price remains stable (no decay)
+            self.assertEqual(self.aegis_model.leaf_price, initial_price)
+            self.assertEqual(self.aegis_model.leaf_price_history[month], initial_price)
 
     def test_liquidity_calculation(self):
         """Test liquidity calculation within price ranges."""
