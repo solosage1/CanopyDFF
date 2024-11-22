@@ -24,7 +24,7 @@ def create_test_deal(
     counterparty: str,
     leaf_amount: float,
     other_amount: float,
-    leaf_percentage: float = 0.35,
+    target_ratio: float = 0.35,
 ) -> Deal:
     """Helper to create a test deal"""
     return Deal(
@@ -32,13 +32,13 @@ def create_test_deal(
         counterparty=counterparty,
         start_month=1,
         leaf_pair_amount=leaf_amount + other_amount,
-        leaf_percentage=leaf_percentage,
+        leaf_tokens=leaf_amount,
+        target_ratio=target_ratio,
         leaf_base_concentration=0.5,
         leaf_max_concentration=0.8,
         leaf_duration_months=60,
         leaf_balance=leaf_amount,
-        other_balance=other_amount,
-        num_leaf_tokens=leaf_amount
+        other_balance=other_amount
     )
 
 def calculate_leaf_needed():
@@ -68,17 +68,16 @@ class TestLiquidityDepth(unittest.TestCase):
         """Set up test cases"""
         logger.info("\nSetting up new test case...")
         
-        # Create AEGIS model
+        # Create AEGIS model with only valid parameters
         aegis_config = AEGISConfig(
             initial_leaf_balance=1_000_000_000,
             initial_usdc_balance=100_000,
-            leaf_price_decay_rate=0.0,
             max_months=12,
             oak_to_usdc_rate=1.0,
             oak_to_leaf_rate=1.0
         )
         self.aegis_model = AEGISModel(aegis_config)
-        logger.info("AEGIS model initialized with 1B LEAF and 100M USDC")
+        logger.info("AEGIS model initialized with 1B LEAF and 100k USDC")
         
         # Initialize deals starting at month 1
         deals = [
@@ -91,7 +90,8 @@ class TestLiquidityDepth(unittest.TestCase):
                 tvl_duration_months=12,
                 tvl_type="ProtocolLocked",
                 leaf_pair_amount=1_000_000,
-                leaf_percentage=0.35,
+                leaf_tokens=350_000,  # 35% of pair amount
+                target_ratio=0.35,    # Replace leaf_percentage with target_ratio
                 leaf_base_concentration=0.5,
                 leaf_max_concentration=0.8,
                 leaf_duration_months=12
@@ -105,7 +105,8 @@ class TestLiquidityDepth(unittest.TestCase):
                 tvl_duration_months=12,
                 tvl_type="ProtocolLocked",
                 leaf_pair_amount=500_000,
-                leaf_percentage=0.35,
+                leaf_tokens=175_000,  # 35% of pair amount
+                target_ratio=0.35,    # Replace leaf_percentage with target_ratio
                 leaf_base_concentration=0.5,
                 leaf_max_concentration=0.8,
                 leaf_duration_months=12

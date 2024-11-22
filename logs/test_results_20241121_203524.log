@@ -1,0 +1,95 @@
+
+=== Running All Tests ===
+
+Running test_logging.py...
+Running test_AEGIS.py...
+Running test_LEAFPairs.py...
+Running test_TVLLoader.py...
+Running test_liquidity_depth.py...
+=== Starting Liquidity Depth Test Suite ===
+
+Setting up new test case...
+AEGIS model initialized with 1B LEAF and 100k USDC
+Added TVL contribution: $1,000,000.00 from Test1
+Added TVL contribution: $500,000.00 from Test2
+LEAF Pairs model initialized with protocol-locked deals
+
+Testing liquidity depth calculations...
+
+Testing AEGIS liquidity:
+  1% range: 10,000,625.05 LEAF, $5,000.06 USDC
+  2% range: 20,005,001.58 LEAF, $10,000.50 USDC
+  5% range: 50,078,279.14 LEAF, $25,007.82 USDC
+  10% range: 100,629,964.14 LEAF, $50,062.78 USDC
+
+Testing LEAF Pairs liquidity:
+  1% range: 26,251.64 LEAF, $48,750.61 USDC
+  2% range: 52,513.13 LEAF, $97,504.88 USDC
+  5% range: 131,455.48 LEAF, $243,826.26 USDC
+  10% range: 264,153.66 LEAF, $488,112.06 USDC
+
+Setting up new test case...
+AEGIS model initialized with 1B LEAF and 100k USDC
+Added TVL contribution: $1,000,000.00 from Test1
+Added TVL contribution: $500,000.00 from Test2
+LEAF Pairs model initialized with protocol-locked deals
+
+Testing price impact...
+
+Price $0.80:
+  AEGIS: 55,989,218.17 LEAF, $22,367.68 USDC
+  LEAF Pairs: 29,394.34 LEAF, $348,935.73 USDC
+
+Price $0.90:
+  AEGIS: 52,787,141.12 LEAF, $23,724.50 USDC
+  LEAF Pairs: 138,566.25 LEAF, $231,313.90 USDC
+
+Price $1.00:
+  AEGIS: 50,078,279.14 LEAF, $25,007.82 USDC
+  LEAF Pairs: 131,455.48 LEAF, $243,826.26 USDC
+
+Price $1.10:
+  AEGIS: 47,747,765.69 LEAF, $26,228.42 USDC
+  LEAF Pairs: 125,337.88 LEAF, $255,727.13 USDC
+
+Price $1.20:
+  AEGIS: 45,715,005.21 LEAF, $27,394.70 USDC
+  LEAF Pairs: 192,003.02 LEAF, $53,419.66 USDC
+
+Setting up new test case...
+AEGIS model initialized with 1B LEAF and 100k USDC
+Added TVL contribution: $1,000,000.00 from Test1
+Added TVL contribution: $500,000.00 from Test2
+LEAF Pairs model initialized with protocol-locked deals
+
+Testing combined liquidity...
+AEGIS: 50,078,279.14 LEAF, $25,007.82 USDC
+LEAF Pairs: 131,455.48 LEAF, $243,826.26 USDC
+Combined Value: $50,478,568.70
+
+Setting up new test case...
+AEGIS model initialized with 1B LEAF and 100k USDC
+Added TVL contribution: $1,000,000.00 from Test1
+Added TVL contribution: $500,000.00 from Test2
+LEAF Pairs model initialized with protocol-locked deals
+
+Testing liquidity imbalance...
+
+Liquidity within ±10% of $1.00:
+Buy side (USDC):  $538,174.83
+Sell side (LEAF): $100,894,117.80
+
+Imbalanced towards sellers: $100,355,942.97 more LEAF than USDC
+Need $100,355,942.97 more USDC to balance
+Imbalance is 98.9% of total liquidity
+
+=== Completed Liquidity Depth Test Suite ===
+Running test_leaf_price.py...
+Testing buy price impact
+Testing month price finalization
+Testing multiple price updates in a month
+Testing price bounds enforcement
+Testing price impact threshold enforcement
+Testing sell price impact
+Running test_TVLContributions.py...
+Running test_OAK.py...

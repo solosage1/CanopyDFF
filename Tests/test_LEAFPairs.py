@@ -22,8 +22,9 @@ class TestLEAFPairs(unittest.TestCase):
             counterparty="LeafHeavy",
             start_month=1,
             leaf_pair_amount=1_000_000,
-            leaf_percentage=0.25,  # Target 25% LEAF
-            leaf_base_concentration=0.5,  # 50% base concentration
+            leaf_tokens=250_000,  # Explicit LEAF token amount
+            target_ratio=0.25,    # Target for future purchases
+            leaf_base_concentration=0.5,
             leaf_max_concentration=1.0,
             leaf_duration_months=12
         )
@@ -33,8 +34,9 @@ class TestLEAFPairs(unittest.TestCase):
             counterparty="LeafLight",
             start_month=1,
             leaf_pair_amount=2_000_000,
-            leaf_percentage=0.30,  # Target 30% LEAF
-            leaf_base_concentration=0.4,  # 40% base concentration
+            leaf_tokens=600_000,  # Explicit LEAF token amount
+            target_ratio=0.30,    # Target for future purchases
+            leaf_base_concentration=0.4,
             leaf_max_concentration=0.8,
             leaf_duration_months=12
         )
@@ -46,9 +48,9 @@ class TestLEAFPairs(unittest.TestCase):
     def test_deal_initialization(self):
         """Test that deals are properly initialized with correct balances."""
         for deal in self.model.deals:
-            # Check that balances are initialized
-            self.assertGreater(deal.leaf_balance, 0)
-            self.assertGreater(deal.other_balance, 0)
+            # Check that balances are initialized to explicit values
+            self.assertEqual(deal.leaf_balance, deal.leaf_tokens)
+            self.assertEqual(deal.other_balance, deal.leaf_pair_amount - (deal.leaf_tokens * 1.0))
             
             # Check that total value matches leaf_pair_amount
             total_value = deal.leaf_balance + deal.other_balance  # At $1 LEAF price
@@ -56,7 +58,7 @@ class TestLEAFPairs(unittest.TestCase):
             
             # Check LEAF percentage is correct
             leaf_ratio = deal.leaf_balance / deal.leaf_pair_amount
-            self.assertAlmostEqual(leaf_ratio, deal.leaf_percentage, places=2)
+            self.assertAlmostEqual(leaf_ratio, deal.target_ratio, places=2)  # Changed from leaf_percentage
 
     def test_get_active_deals(self):
         """Test active deal filtering."""
@@ -91,7 +93,7 @@ class TestLEAFPairs(unittest.TestCase):
 
     def test_liquidity_within_percentage(self):
         """Test liquidity calculation within percentage range."""
-        current_price = 1.0
+        current_price = 1.0  # Use constant price for test
         percentage = 5.0  # 5% range
         
         leaf_amount, other_amount = self.model.get_liquidity_within_percentage(
@@ -113,7 +115,8 @@ class TestLEAFPairs(unittest.TestCase):
             counterparty="NewPair",
             start_month=2,
             leaf_pair_amount=500_000,
-            leaf_percentage=0.20,
+            leaf_tokens=100_000,     # Explicit LEAF token amount
+            target_ratio=0.20,       # Target for future purchases
             leaf_base_concentration=0.6,
             leaf_max_concentration=0.9,
             leaf_duration_months=12
@@ -127,15 +130,17 @@ class TestLEAFPairs(unittest.TestCase):
 
     def test_invalid_deal_validation(self):
         """Test validation of invalid deals."""
-        # Test invalid LEAF percentage
+        # Test invalid target ratio
         with self.assertRaises(ValueError):
             invalid_deal = Deal(
                 deal_id="test_004",
                 counterparty="Invalid",
                 start_month=1,
                 leaf_pair_amount=100_000,
-                leaf_percentage=0.6,  # Invalid: > 50%
+                leaf_tokens=60_000,      # Explicit LEAF token amount
+                target_ratio=0.6,        # Invalid ratio (>50%)
                 leaf_base_concentration=0.5,
+                leaf_max_concentration=0.8,
                 leaf_duration_months=12
             )
             self.model.add_deal(invalid_deal)
@@ -147,8 +152,10 @@ class TestLEAFPairs(unittest.TestCase):
                 counterparty="LeafHeavy",  # Duplicate counterparty
                 start_month=1,
                 leaf_pair_amount=100_000,
-                leaf_percentage=0.3,
+                leaf_tokens=30_000,      # Explicit LEAF token amount
+                target_ratio=0.3,        # Target for future purchases
                 leaf_base_concentration=0.5,
+                leaf_max_concentration=0.8,
                 leaf_duration_months=12
             )
             self.model.add_deal(duplicate_deal)

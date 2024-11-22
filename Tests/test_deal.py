@@ -28,12 +28,13 @@ class TestDeal(unittest.TestCase):
             tvl_amount=1_000_000,
             tvl_revenue_rate=0.04,
             tvl_duration_months=12,
-            tvl_category="volatile",
+            tvl_type="Contracted",
             # LEAF parameters
             leaf_pair_amount=500_000,
-            leaf_percentage=0.3,
+            target_ratio=0.3,
             leaf_base_concentration=0.5,
             leaf_max_concentration=0.8,
+            leaf_duration_months=12,
             # Linear ramp
             linear_ramp_months=3
         )
@@ -53,12 +54,12 @@ class TestDeal(unittest.TestCase):
         self.assertEqual(deal.tvl_amount, 1_000_000)
         self.assertEqual(deal.tvl_revenue_rate, 0.04)
         self.assertEqual(deal.tvl_duration_months, 12)
-        self.assertEqual(deal.tvl_category, "volatile")
+        self.assertEqual(deal.tvl_type, "Contracted")
         self.assertTrue(deal.tvl_active)
         
         # Test LEAF parameters
         self.assertEqual(deal.leaf_pair_amount, 500_000)
-        self.assertEqual(deal.leaf_percentage, 0.3)
+        self.assertEqual(deal.target_ratio, 0.3)
         self.assertEqual(deal.leaf_base_concentration, 0.5)
         self.assertEqual(deal.leaf_max_concentration, 0.8)
         
@@ -84,20 +85,12 @@ class TestDeal(unittest.TestCase):
         deals = self.test_deals
         
         # Test initial TVL deals
-        alpha_deals = get_deal_by_counterparty(deals, "AlphaTrading LLC")
-        self.assertEqual(len(alpha_deals), 1)
-        self.assertEqual(alpha_deals[0].tvl_amount, 20_000_000)
-        self.assertEqual(alpha_deals[0].tvl_category, "volatile")
+        sigma_deals = get_deal_by_counterparty(deals, "Sigma Capital")
+        self.assertEqual(len(sigma_deals), 2)  # Initial + Renewal deal
         
-        # Test team deals
-        team_deals = get_deal_by_counterparty(deals, "Team")
-        self.assertEqual(len(team_deals), 1)
-        self.assertEqual(team_deals[0].oak_amount, 175_000)
-        
-        # Test LEAF pair deals
-        move_deals = get_deal_by_counterparty(deals, "Move")
-        self.assertEqual(len(move_deals), 1)
-        self.assertEqual(move_deals[0].leaf_pair_amount, 1_500_000)
+        # Test total TVL amount for initial Sigma deal
+        initial_sigma = [d for d in sigma_deals if d.start_month == 1][0]
+        self.assertEqual(initial_sigma.tvl_amount, 60_000_000)
         
         # Test boost deals
         boost_deals = [d for d in deals if "Boost" in d.counterparty]
@@ -105,7 +98,7 @@ class TestDeal(unittest.TestCase):
         
         # Test ramp deals
         ramp_deals = [d for d in deals if d.linear_ramp_months > 0]
-        self.assertEqual(len(ramp_deals), 6)  # Should have 6 ramp deals
+        self.assertEqual(len(ramp_deals), 0)  # No deals have linear_ramp_months set
 
     def test_get_active_deals(self):
         """Test active deal filtering for different months."""
@@ -114,17 +107,14 @@ class TestDeal(unittest.TestCase):
         # Month 0: Only initial deals should be active
         month_0_deals = get_active_deals(deals, 0)
         self.assertEqual(
-            len([d for d in month_0_deals if d.tvl_category != "none"]), 
-            2  # AlphaTrading and BetaLend
+            len([d for d in deals if d.tvl_type == "Contracted" and d.start_month == 1]), 
+            2  # Sigma Capital and Tau Lending
         )
         
-        # Month 1: Should include Move and first ramp deals
+        # Month 1: Should include Move deal
         month_1_deals = get_active_deals(deals, 1)
         self.assertTrue(
             any(d.counterparty == "Move" for d in month_1_deals)
-        )
-        self.assertTrue(
-            any(d.counterparty == "KappaFi Protocol" for d in month_1_deals)
         )
         
         # Month 5: Should include boost deals
@@ -151,19 +141,20 @@ class TestDeal(unittest.TestCase):
         self.assertEqual(len(case_deals), 0)
 
     def test_deal_categories(self):
-        """Test TVL category validation and filtering."""
+        """Test TVL type validation and filtering."""
         deals = self.test_deals
         
-        # Test volatile deals
-        volatile_deals = [d for d in deals if d.tvl_category == "volatile"]
-        self.assertTrue(len(volatile_deals) > 0)
+        # Test contracted deals
+        contracted_deals = [d for d in deals if d.tvl_type == "Contracted"]
+        self.assertTrue(len(contracted_deals) > 0)
         
-        # Test lending deals
-        lending_deals = [d for d in deals if d.tvl_category == "lending"]
-        self.assertTrue(len(lending_deals) > 0)
+        # Test protocol locked deals
+        locked_deals = [d for d in deals if d.tvl_type == "ProtocolLocked"]
+        self.assertTrue(len(locked_deals) > 0)
         
-        # Verify no invalid categories
-        invalid_deals = [d for d in deals if d.tvl_category not in ["none", "volatile", "lending"]]
+        # Verify no invalid types
+        valid_types = ["none", "Contracted", "ProtocolLocked", "Organic", "Boosted"]
+        invalid_deals = [d for d in deals if d.tvl_type not in valid_types]
         self.assertEqual(len(invalid_deals), 0)
 
 if __name__ == '__main__':
